@@ -1,56 +1,49 @@
 # Poodle Earth v0.1.2 — release notes
 
-**Candidate prepared November 21, 2026. Not published.** The most recent
-published release is [v0.1.1](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.1).
-Update the date, candidate revision and artifact evidence only after they are
-verified and the owner authorizes publication.
+**November 21, 2026**
 
 ## Changes since v0.1.1
 
-- **Country names** appear after the globe settles. Classic Mac OS users can
-  switch them on or off with **View → Country Names**; X11 users can use the
-  F2 tools window. Names are not shown during drag or zoom.
-- The native overlays use installed fonts. On Classic, Helvetica is preferred
-  and Palatino is the fallback. The country anchors and priorities come from
-  the pinned Natural Earth country data, and mismatched country editions
-  disable the labels.
+- Country names appear after the globe settles. Toggle them using
+  **View → Country Names** on Classic Mac OS or the F2 tools window on X11.
+  Labels do not appear while dragging or zooming.
+- The overlay uses installed fonts; Classic selects Helvetica first, with
+  Palatino as fallback. Country label positions and priorities come from
+  the pinned Natural Earth data. No fonts or network data are bundled.
 
-## Verification and limits
+## Platforms and installation
 
-The feature was merged in [PR #185](https://github.com/jackwillis/poodle-earth/pull/185)
-(commit `f4f4cf8ba6eddb1b3deb37019e44f91e3678e6cb`).
-On the integrated PR head `9c8c3bea445d9d404f766aed4a13822779901a3d`,
-[Checks](https://github.com/jackwillis/poodle-earth/actions/runs/44873279919)
-and [Release build](https://github.com/jackwillis/poodle-earth/actions/runs/44873279766)
-passed. Host GCC/Clang suites, X11 label smoke tests and Retro68
-cross-build/package checks passed.
+The public binary is the PowerPC Classic Mac OS application. Its release
+includes a StuffIt archive (`.sit`) and a hybrid HFS/ISO CD image. Expand
+the StuffIt archive on the Mac, or mount the CD image in a compatible
+PowerPC environment and copy the application to a writable volume using
+Finder, preserving its resource fork. The source archive, release manifest
+and SHA-256 checksums are provided with the distribution.
 
-The owner visually accepted an earlier country-label build (`b7aa82a`) on
-a Power Mac G4 running bare Mac OS 9 and accepted its performance qualitatively.
-No numeric timings were recorded: the formal timing comparison and font-removal
-tests were waived for v0.1.2. This does not certify the final release artifact.
-Actual Classic glyph/shadow ink bounds remain an accepted, unverified limitation.
+See the [GitHub releases](https://github.com/jackwillis/poodle-earth/releases)
+for downloadable artifacts and matching source. Linux and NetBSD use the
+separate source-build X11 frontend, not a published Unix binary package.
 
-Country labels can extend past borders or be suppressed in crowded views.
-Each country has one fixed anchor; the label may disappear near the limb.
-The compact atlas, ASCII names and existing geographic coverage are unchanged.
-City-name labels and new platform packages are not part of v0.1.2.
+## Verification and limitations
 
-## Distribution
+Country labels merged in [PR #185](https://github.com/jackwillis/poodle-earth/pull/185),
+with host tests, X11 interaction checks, Retro68 cross-build and packaging
+checks. The owner accepted the appearance of an earlier country-label
+build (`b7aa82a`) on a Power Mac G4 running bare Mac OS 9. No numeric
+G4 timings were recorded; the formal timing comparison and font-removal
+tests were waived. Native Classic glyph and shadow ink bounds remain an
+accepted, unverified limitation. This historical test is not a claim
+that the final 0.1.2 distribution was run on the G4.
 
-The intended public binary is the PowerPC Classic Mac OS application, with a
-StuffIt archive and hybrid HFS/ISO image. Matching source, `RELEASE.json`
-and `SHA256SUMS` must be generated and verified from one final clean revision.
-The Unix/X11 frontend remains available as a source build, not a new binary
-download. See the [release checklist](release-checklist.md).
+The compact atlas retains 1:110-million-scale boundaries, one-degree
+terrain and 304 city points. Country labels may extend beyond borders
+or be omitted in crowded views; each country has one fixed anchor and
+may lose its name near the limb. City labels, new geographic data packs
+and new operating-system packages are not included in v0.1.2.
 
-PR-event preview packages were inspected and checksummed by an independent
-reviewer, but those packages come from GitHub's temporary PR merge commit,
-not the eventual clean release revision. They must not be published as-is.
+The release's `RELEASE.json` records the exact corresponding source
+revision and artifact hashes; `SHA256SUMS` verifies the downloaded files.
+Cross-build and packaging checks do not certify native execution.
 
-**Pending:** final post-merge candidate build and fork/archive checks; immutable
-source revision, final checksums and artifact links; owner publication approval.
-No final v0.1.2 download or binary verification is claimed here.
-
-License: GPL-3.0-or-later. Geographic data notices are in
-[DataCredit](../data/DATA-CREDITS.txt).
+License: GPL-3.0-or-later. Geographic data attributions are in the
+[DataCredit](../data/DATA-CREDITS.txt) file and the About window.
