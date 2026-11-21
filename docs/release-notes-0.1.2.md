@@ -20,20 +20,19 @@ PowerPC environment and copy the application to a writable volume using
 Finder, preserving its resource fork. The source archive, release manifest
 and SHA-256 checksums are provided with the distribution.
 
-See the [GitHub releases](https://github.com/jackwillis/poodle-earth/releases)
+See the [v0.1.2 GitHub release](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.2)
 for downloadable artifacts and matching source. Linux and NetBSD use the
 separate source-build X11 frontend, not a published Unix binary package.
 
 ## Verification and limitations
 
-Country labels merged in [PR #185](https://github.com/jackwillis/poodle-earth/pull/185),
-with host tests, X11 interaction checks, Retro68 cross-build and packaging
-checks. The owner accepted the appearance of an earlier country-label
-build (`b7aa82a`) on a Power Mac G4 running bare Mac OS 9. No numeric
-G4 timings were recorded; the formal timing comparison and font-removal
-tests were waived. Native Classic glyph and shadow ink bounds remain an
-accepted, unverified limitation. This historical test is not a claim
-that the final 0.1.2 distribution was run on the G4.
+The v0.1.2 StuffIt archive and hybrid CD image were tested on a Power Mac G4
+running Mac OS 9.2.2. Host tests, X11 interaction tests, Retro68 cross-builds
+and packaging checks also passed.
+
+Numeric rendering timings and font-removal testing were not performed.
+Country-label glyph and shadow bounds have not been independently verified
+on Classic Mac OS.
 
 The compact atlas retains 1:110-million-scale boundaries, one-degree
 terrain and 304 city points. Country labels may extend beyond borders

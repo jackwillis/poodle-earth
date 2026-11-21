@@ -5,7 +5,7 @@ cities, switch between **Map** and **Relief**, shade the night side and measure
 great-circle distances. All geographic data are built in; no network connection
 is used.
 
-**[Download Poodle Earth v0.1.1](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.1)**
+**[Download Poodle Earth v0.1.2](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.2)**
 
 Choose a StuffIt (`.sit`) archive or a hybrid CD image (`.iso`). The release page also includes matching source and checksums.
 
@@ -25,7 +25,8 @@ Captured on a Power Mac G4 under **bare Mac OS 9.2.2** on November 17,
    together in a folder on your hard disk.
 2. Double-click **Poodle Earth**. Drag to turn the globe, double-click to center
    and zoom, and click a country or city for its information card.
-3. Choose Map or Relief in the sidebar or View menu. Use `+` / `-` to zoom,
+3. Choose Map or Relief in the sidebar or View menu. Country names appear after
+   the globe settles; **View → Country Names** toggles them. Use `+` / `-` to zoom,
    `D` for night shading and `M`, then two clicks, to measure a distance.
 
 Use Finder to copy the application: it needs both its data and resource forks.
@@ -37,7 +38,7 @@ and the [CD guide and exact test evidence](docs/os9-cd-image.md).
 ## Platforms and limits
 
 The published v0.1.0 preview was tested on a **Power Mac G4 AGP, 467 MHz,
-256 MB, bare Mac OS 9.2.2** ([acceptance #95](https://github.com/jackwillis/poodle-earth/issues/95)).
+256 MB, bare Mac OS 9.2.2** ([test record](https://github.com/jackwillis/poodle-earth/issues/95)).
 Its application memory settings are 24 MB preferred and 12 MB minimum. Quit the
 app before changing these in Finder's Get Info > Memory; larger windows need
 more memory.
@@ -53,11 +54,10 @@ The compact data set has 1:110 million-scale coastlines and borders, one-degree
 terrain and 304 cities. Small islands, small countries and many cities are
 missing; names are ASCII. There is no street map, data download, saved preference
 file or custom application icon. The v0.1.0 preview can leave an unfinished globe
-edge; turn or zoom to repaint it. Jack later reported sustained use without
-recurrence, without a structured regression test. See the [changelog](CHANGELOG.md)
+edge; turn or zoom to repaint it. See the [changelog](CHANGELOG.md)
 for changes after v0.1.0 and [v0.1.1 notes](docs/release-notes-0.1.1.md).
-[v0.1.2 release notes](docs/release-notes-0.1.2.md) summarize the country-name
-update. Until v0.1.2 is published, the download above remains v0.1.1.
+[v0.1.2 release notes](docs/release-notes-0.1.2.md) summarize country labels
+and known limitations. The screenshots above predate the label feature.
 
 ## Build and contribute
 
