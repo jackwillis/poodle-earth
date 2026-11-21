@@ -46,6 +46,8 @@ def load_catalog(path=HERE / "assumptions.json"):
         for alternatives in node.get("requires_any", []):
             if not alternatives or any(d not in investments or d == name for d in alternatives):
                 raise ValueError("Invalid OR prerequisite " + name)
+        if any(c not in investments or c == name for c in node.get("conflicts", [])):
+            raise ValueError("Invalid conflict " + name)
         if any(float(node.get(k, 0)) < 0 for k in ("owner_hours", "validation_hours", "maintenance_hours")):
             raise ValueError("Negative resource cost")
     def visit(name, path):
@@ -64,8 +66,10 @@ def load_catalog(path=HERE / "assumptions.json"):
 
 def valid_bundle(names, investments):
     s = set(names)
-    return all(set(investments[n].get("requires_all", [])).issubset(s) and
-               all(set(options) & s for options in investments[n].get("requires_any", []))
+    return all(investments[n]["evidence"] != "blocked" and
+               set(investments[n].get("requires_all", [])).issubset(s) and
+               all(set(options) & s for options in investments[n].get("requires_any", [])) and
+               not (set(investments[n].get("conflicts", [])) & s)
                for n in s)
 
 
