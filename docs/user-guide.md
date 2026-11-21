@@ -31,12 +31,6 @@ The [CD guide](os9-cd-image.md) describes the format and test evidence.
    both License files and DataCredit into it in Finder, then launch the copy.
    Finder uses the HFS view and preserves both forks; StuffIt is unnecessary.
 
-The owner verified the **v0.1.2 release ISO** from a burned CD-R on a physical
-Power Mac G4 running bare Mac OS 9.2.2: the disc mounted, a Finder-copied app
-launched, and About showed 0.1.2. The final v0.1.2 StuffIt archive also passed
-native launch and interaction checks ([acceptance evidence](https://github.com/jackwillis/poodle-earth/issues/119#issuecomment-7066176502)).
-The earlier v0.1.1 CD was separately tested in ClassicMac 4.7.0 (emulated G4,
-Mac OS 9.2.1); that observation does not certify v0.1.2 in the emulator.
 Copying to disk is the recommended installation path. On CD the memory settings
 in Get Info are read-only; they become editable on the hard-disk copy after quit.
 
@@ -91,9 +85,8 @@ quit on Classic. Command-= also zooms in.
 
 ![Controls list in the information pane beside a globe with night shading](images/os9/controls-night-side.png)
 
-The images in this guide were captured by Jack on bare Mac OS 9.2.2 using build
-`110a197` on November 17, 2026. They show development changes after v0.1.0.
-[Capture provenance and lossless conversion](images/os9/README.md).
+The screenshots show a November 17, 2026 development build on Mac OS 9.2.2,
+before country labels shipped. [Screenshot details](images/os9/README.md).
 
 ## Memory and troubleshooting
 
@@ -104,14 +97,12 @@ The images in this guide were captured by Jack on bare Mac OS 9.2.2 using build
   a refused enlargement once per session; v0.1.0 does not show that explanation.
 - **Application will not open:** confirm the guest is PowerPC, copy again using
   Finder or re-expand the `.sit` on the Mac, and check free memory. The original
-  v0.1.0 has an AppearanceLib dependency that fails on Mac OS 8.1. A later
-  QuickDraw-cursor fix has [owner-reported emulator smoke tests](https://github.com/jackwillis/poodle-earth/issues/174#issuecomment-6969352476)
-  on PowerPC System 7.1.2 through Mac OS 8.5; these do not establish every machine
-  and OS combination or change the original release's requirements.
+  v0.1.0 has an AppearanceLib dependency that fails on Mac OS 8.1;
+  newer releases use QuickDraw cursors. See [Mac OS compatibility notes](https://github.com/jackwillis/poodle-earth/issues/174)
+  if you're using an older system.
 - **Wheel does nothing:** Classic has no native scroll-wheel input here; use
   Page Up / Page Down or `+` / `-`. A wheel driver may map to those keys.
-- **Unfinished globe edge in v0.1.0:** turn or zoom to repaint. Jack subsequently
-  reported sustained use without recurrence; this was not a structured proof.
+- **Unfinished globe edge in v0.1.0:** turn or zoom to repaint.
 - **Missing island, country or city:** this compact atlas uses 1:110 million-scale
   outlines, one-degree terrain and 304 cities. It is not a street atlas.
 

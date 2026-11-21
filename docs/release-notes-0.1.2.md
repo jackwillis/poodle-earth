@@ -26,23 +26,13 @@ separate source-build X11 frontend, not a published Unix binary package.
 
 ## Verification and limitations
 
-Country labels merged in [PR #185](https://github.com/jackwillis/poodle-earth/pull/185),
-with host tests, X11 interaction checks, Retro68 cross-build and packaging
-checks. The owner first accepted the appearance of an earlier country-label
-build (`b7aa82a`) on a Power Mac G4 running bare Mac OS 9.2.2.
+The v0.1.2 StuffIt archive and hybrid CD image were tested on a Power Mac G4
+running Mac OS 9.2.2. Host tests, X11 interaction tests, Retro68 cross-builds
+and packaging checks also passed.
 
-The owner subsequently accepted **the actual v0.1.2 release artifacts** built
-from commit `68e40b3`: the StuffIt archive passed the native installation,
-launch, label-toggle/settled-frame and interaction smoke checks. A CD-R burned
-from the release's hybrid ISO mounted on the G4, and the Finder-copied app
-launched and reported version 0.1.2 ([native acceptance record](https://github.com/jackwillis/poodle-earth/issues/119#issuecomment-7066176502)).
-The checksums of the published release downloads were also verified
-([publication record](https://github.com/jackwillis/poodle-earth/issues/119#issuecomment-7066217800)).
-
-No numeric G4 timings were recorded; the formal timing comparison and
-font-removal tests were waived. Native Classic glyph and shadow ink bounds
-remain an accepted, unverified limitation. These native results do not
-certify every operating-system version or emulator.
+Numeric rendering timings and font-removal testing were not performed.
+Country-label glyph and shadow bounds have not been independently verified
+on Classic Mac OS.
 
 The compact atlas retains 1:110-million-scale boundaries, one-degree
 terrain and 304 city points. Country labels may extend beyond borders
@@ -56,5 +46,3 @@ Cross-build and packaging checks do not certify native execution.
 
 License: GPL-3.0-or-later. Geographic data attributions are in the
 [DataCredit](../data/DATA-CREDITS.txt) file and the About window.
-The distributed DataCredit title still says “0.1”; the owner accepted this
-cosmetic discrepancy for v0.1.2, and the attribution text remains accurate.

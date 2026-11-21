@@ -30,37 +30,31 @@ volume, drag **Poodle Earth** to a folder on the writable Macintosh hard disk,
 and open the copied application. Use the Finder copy so both forks travel
 together. See the [user guide](user-guide.md) for the StuffIt alternative and controls.
 
-## Jack's acceptance of the tested image
+## Earlier CD compatibility checks (November 19, 2026)
 
-On November 19, 2026, Jack reported results for the local PR #172 test image:
+PR #172 test image:
 
 - File: `PoodleEarth-PR172-2074034-local-hfs.iso`, 1,210,368 bytes.
 - Source: `20740340c939bb5eda5185f5f288650db50850ee`.
 - SHA-256: `1f4326ce52904f1f152f1d35ecca958974b7ed5cd5ce13bf1931913efb538021`.
-- **Physical Power Mac G4, bare Mac OS 9.2.2:** Jack burned the image on
-  Fedora with xorriso 1.5.8.pl02 and reported that the app, files and Get Info
-  worked. Memory settings were read-only on CD until the app was copied to the
-  hard drive. The native report did not separately specify the launch location.
-- **ClassicMac 4.7.0, emulated Power Mac G4, Mac OS 9.2.1:** Jack attached
-  the image as a CD, launched the app from the mounted CD, copied it to the guest
-  desktop and successfully launched the copy.
+- **Physical Power Mac G4, bare Mac OS 9.2.2:** CD-R burned with xorriso 1.5.8.pl02;
+  the application, documents and Get Info worked. Memory settings were read-only
+  on CD until the app was copied to the hard drive.
+- **ClassicMac 4.7.0, emulated Power Mac G4, Mac OS 9.2.1:** The image mounted
+  as a CD; the app launched from the CD and after copying to the guest desktop.
 
-These are owner-reported tests, not agent-observed runs. The
-[native record](https://github.com/jackwillis/poodle-earth/issues/171#issuecomment-7001544331)
-and [emulator acceptance and waiver](https://github.com/jackwillis/poodle-earth/issues/171#issuecomment-7002974798)
-supersede the earlier pending-test statements. Jack approved carrying both tests
-forward without retest **only for subsequent text-only changes**. The waiver
-excludes changes to the executable, Finder metadata or packaging behavior.
-Neither this evidence nor the waiver establishes QEMU/SheepShaver acceptance or
-compatibility with every guest OS.
+Detailed [physical Mac](https://github.com/jackwillis/poodle-earth/issues/171#issuecomment-7001544331)
+and [emulator](https://github.com/jackwillis/poodle-earth/issues/171#issuecomment-7002974798)
+test records are available on #171. Other emulators and guest OS versions were
+not tested.
 
 The [v0.1.1 release](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.1) publishes the hybrid ISO alongside StuffIt,
 matching source, the release manifest and SHA-256 checksums. Use the published
 checksums to verify the release image.
 
-## v0.1.2 final release evidence (November 21, 2026)
+## v0.1.2 CD test (November 21, 2026)
 
-The owner [accepted the exact v0.1.2 release ISO](https://github.com/jackwillis/poodle-earth/issues/119#issuecomment-7066176502) built from `68e40b3e5069f92cc5b9e9426379441cd00ef9c3`: SHA-256 `4e9b82304743902a63af2c02db8e6d006776e6d02eb081ce79d08f930acefb3a`. A CD-R was burned and read back byte-identical on a second check (the first read-back mismatched; subsequent direct reads matched). On the physical G4 under bare Mac OS 9.2.2 the CD mounted, the Finder-copied application launched and About reported 0.1.2. This is owner-reported acceptance of that specific release artifact, separate from the older PR #172/0.1.1 tests; it does not prove every emulator, optical drive or platform.
+The [v0.1.2 ISO](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.2) (SHA-256 `4e9b82304743902a63af2c02db8e6d006776e6d02eb081ce79d08f930acefb3a`) was burned to CD-R and checked by read-back. On a physical Power Mac G4 running Mac OS 9.2.2, the disc mounted and the Finder-copied application launched with About showing 0.1.2.
 
 ## Build and verify on Linux
 
