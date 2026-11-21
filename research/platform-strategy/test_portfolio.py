@@ -24,6 +24,8 @@ class PortfolioTests(unittest.TestCase):
         self.assertFalse(portfolio.valid_bundle(["java14_reader"], inv))
         self.assertTrue(portfolio.valid_bundle(["java14_static_gate", "java14_awt_pilot", "java14_reader"], inv))
         self.assertFalse(portfolio.valid_bundle(["fltk_shared_frontend"], inv))
+        self.assertFalse(portfolio.valid_bundle(["cocoa_tiger_probe"], inv))
+        self.assertFalse(portfolio.valid_bundle(["xlib_linux_package", "fltk_linux_probe", "fltk_shared_frontend"], inv))
 
     def test_alternative_frontends_not_additive(self):
         inv = self.catalog["investments"]
