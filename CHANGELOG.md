@@ -12,6 +12,11 @@ remain under **Unreleased** until the release is published.
 
 [Release notes](docs/release-notes-0.1.2.md)
 
+- Classic: opt-in File → Run Script executes bounded border queries, setters, assertions
+  and presentation waits cooperatively, with optional user-selected JSONL output.
+  Host tests and Retro68 compilation cover the prototype; native acceptance is pending
+  ([#221](https://github.com/jackwillis/poodle-earth/issues/221)).
+
 ## 0.1.1 — 2026-11-19
 
 - Added a map scale, north-following compass and in-app controls help.
