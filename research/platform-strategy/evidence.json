@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "notes": "Illustrative evidence provenance records, deliberately partial: no full 71-scenario support assertions. This is NOT a certification log.",
+  "records": [
+    {
+      "scenario_id": "6807e01f27808e53",
+      "route": "classic-toolbox",
+      "level": "published",
+      "full_scenario": false,
+      "scope": "Bare Mac OS 9.2.2 PowerPC, not all System 7.1.2–9 versions",
+      "source": "https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.2",
+      "date": "2026-11-21",
+      "environment": "Classic PowerPC release; OS 9 physical evidence tracked separately in docs/os9-proof.md",
+      "revision": "v0.1.2",
+      "native_validation": "https://github.com/jackwillis/poodle-earth/issues/95"
+    },
+    {
+      "scenario_id": "11fe05ee44dc5c80",
+      "route": "xlib-unix",
+      "level": "native_launched",
+      "full_scenario": false,
+      "scope": "Fedora 44 / Debian 12 Xvfb host tests only; not all modern Linux x86_64",
+      "source": "https://github.com/jackwillis/poodle-earth/pull/215",
+      "date": "2026-11-19",
+      "environment": "Fedora 44 x86_64 host and Debian 12 container; Xvfb",
+      "revision": "13f94c1ac875ff6fa9fb197f07e9dd10b58f7b0e"
+    }
+  ]
+}
