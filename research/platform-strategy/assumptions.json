@@ -24,7 +24,10 @@
       "owner_hours": 9,
       "validation_hours": 4,
       "maintenance_hours": 4,
-      "learning_proxy": 2
+      "learning_proxy": 2,
+      "conflicts": [
+        "xlib_linux_package"
+      ]
     },
     "netbsd_fltk_acceptance": {
       "evidence": "hypothesis",
@@ -92,7 +95,10 @@
       "owner_hours": 3,
       "validation_hours": 5,
       "maintenance_hours": 2,
-      "learning_proxy": 1
+      "learning_proxy": 1,
+      "conflicts": [
+        "fltk_shared_frontend"
+      ]
     }
   },
   "targets": [
