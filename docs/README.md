@@ -31,6 +31,7 @@
 - [Shared presentation](design/shared-presentation-architecture.md) · [rendering backends and execution](research/rendering-backends-and-execution.md) (exploratory, nonbinding)
 - [CD-ROM atlas research](research/cd-rom-atlas-architecture.md)
 - [Cross-platform frontends and distribution](research/cross-platform-frontends-and-distribution.md) (exploratory, nonbinding)
+- [FLTK portability dependency graph, evidence levels and validation gates](research/fltk-portability-dependency-model.md) (research only; no platform support claim)
 - [November 2026 platform RICE methodology, scenario and package-channel snapshots](research/platform-rice-2026-11.md) (hypothetical, not adoption forecasts)
 - [Historical Java 1.4/1.1 runtime evidence and licensing research](research/historical-java-compatibility.md) · [proposed PE-JAVA scientific protocol](research/pe-java-experimental-protocol.md) (research only; no implementation authorized)
 - [November 2026 CMake audit and post-audit record](research/repository-cmake-audit-2026-11.md) (dated observations, existing #126 ownership)
