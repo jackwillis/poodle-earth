@@ -3,14 +3,14 @@
 Release dates are the dates of publication. Changes in an unpublished candidate
 remain under **Unreleased** until the release is published.
 
-## Unreleased — v0.1.2 candidate (prepared 2026-11-21)
+## 0.1.2 — 2026-11-21
 
 - Country names appear on the settled globe. Toggle them through
   **View → Country Names** on Classic Mac OS or the F2 tools window on X11.
 - Labels use installed system fonts and country-specific Natural Earth positions.
   No fonts or network data are bundled for this feature.
 
-[Draft v0.1.2 release notes](docs/release-notes-0.1.2.md)
+[Release notes](docs/release-notes-0.1.2.md)
 
 ## 0.1.1 — 2026-11-19
 
