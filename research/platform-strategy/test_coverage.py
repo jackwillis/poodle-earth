@@ -73,6 +73,20 @@ class CoverageTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             coverage.validate_ledger([fake], self.rows)
 
+    def test_full_scenario_cannot_skip_stages(self):
+        fake = dict(self.records[0], full_scenario=True)
+        with self.assertRaises(ValueError):
+            coverage.validate_ledger([fake], self.rows)
+        fake["verified_stages"] = {
+            stage: "https://github.com/jackwillis/poodle-earth/issues/95"
+            for stage in coverage.LEVELS[1:coverage.LEVELS.index("published")]
+        }
+        with self.assertRaises(ValueError):
+            coverage.validate_ledger([fake], self.rows)  # publication_url still missing
+        fake["publication_url"] = "https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.2"
+        coverage.validate_ledger([fake], self.rows)
+        # This proves schema acceptance ONLY, not whether that evidence is truthful.
+
     def test_ledger_schema(self):
         with TemporaryDirectory() as d:
             path = Path(d) / "bad.json"
