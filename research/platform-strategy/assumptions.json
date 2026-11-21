@@ -1,0 +1,172 @@
+{
+  "model_version": "0.1",
+  "status": "illustrative assumptions, not empirical observations",
+  "sources": [
+    "docs/research/platform-rice-scenario-inputs-2026-11.csv",
+    "docs/research/pe-java-experimental-protocol.md",
+    "#183",
+    "#237",
+    "#238"
+  ],
+  "investments": {
+    "fltk_linux_probe": {
+      "evidence": "draft",
+      "owner_hours": 5,
+      "validation_hours": 5,
+      "maintenance_hours": 0,
+      "learning_proxy": 6
+    },
+    "fltk_shared_frontend": {
+      "evidence": "hypothesis",
+      "requires_all": [
+        "fltk_linux_probe"
+      ],
+      "owner_hours": 9,
+      "validation_hours": 4,
+      "maintenance_hours": 4,
+      "learning_proxy": 2
+    },
+    "netbsd_fltk_acceptance": {
+      "evidence": "hypothesis",
+      "requires_all": [
+        "fltk_shared_frontend"
+      ],
+      "owner_hours": 4,
+      "validation_hours": 9,
+      "maintenance_hours": 3,
+      "learning_proxy": 3
+    },
+    "java14_static_gate": {
+      "evidence": "hypothesis",
+      "owner_hours": 5,
+      "validation_hours": 3,
+      "maintenance_hours": 0,
+      "learning_proxy": 8
+    },
+    "java14_awt_pilot": {
+      "evidence": "hypothesis",
+      "requires_all": [
+        "java14_static_gate"
+      ],
+      "owner_hours": 7,
+      "validation_hours": 8,
+      "maintenance_hours": 2,
+      "learning_proxy": 6
+    },
+    "java14_reader": {
+      "evidence": "hypothesis",
+      "requires_all": [
+        "java14_awt_pilot"
+      ],
+      "owner_hours": 14,
+      "validation_hours": 12,
+      "maintenance_hours": 8,
+      "learning_proxy": 4
+    },
+    "cocoa_tiger_probe": {
+      "evidence": "blocked",
+      "owner_hours": 7,
+      "validation_hours": 6,
+      "maintenance_hours": 1,
+      "learning_proxy": 6
+    },
+    "vector68k_probe": {
+      "evidence": "hypothesis",
+      "owner_hours": 5,
+      "validation_hours": 7,
+      "maintenance_hours": 1,
+      "learning_proxy": 7
+    },
+    "vector68k_port": {
+      "evidence": "hypothesis",
+      "requires_all": [
+        "vector68k_probe"
+      ],
+      "owner_hours": 12,
+      "validation_hours": 14,
+      "maintenance_hours": 6,
+      "learning_proxy": 3
+    },
+    "xlib_linux_package": {
+      "evidence": "draft",
+      "owner_hours": 3,
+      "validation_hours": 5,
+      "maintenance_hours": 2,
+      "learning_proxy": 1
+    }
+  },
+  "targets": [
+    {
+      "id": "linux-x64-fltk",
+      "selector": {
+        "OS / family": "Linux",
+        "Version / scenario": "modern distributions",
+        "ISA / ABI": "x86_64"
+      },
+      "requires_all": [
+        "fltk_shared_frontend"
+      ],
+      "audience_bucket": "linux-x64"
+    },
+    {
+      "id": "linux-x64-xlib",
+      "selector": {
+        "OS / family": "Linux",
+        "Version / scenario": "modern distributions",
+        "ISA / ABI": "x86_64"
+      },
+      "requires_all": [
+        "xlib_linux_package"
+      ],
+      "audience_bucket": "linux-x64"
+    },
+    {
+      "id": "netbsd-macppc-fltk",
+      "selector": {
+        "OS / family": "NetBSD",
+        "Version / scenario": "11.1 / macppc",
+        "ISA / ABI": "PPC"
+      },
+      "requires_all": [
+        "netbsd_fltk_acceptance"
+      ],
+      "audience_bucket": "netbsd-macppc"
+    },
+    {
+      "id": "tiger-ppc-cocoa",
+      "selector": {
+        "OS / family": "Mac OS X",
+        "Version / scenario": "10.4/10.5",
+        "ISA / ABI": "PowerPC"
+      },
+      "requires_all": [
+        "cocoa_tiger_probe"
+      ],
+      "audience_bucket": "tiger-ppc"
+    },
+    {
+      "id": "tiger-ppc-java",
+      "selector": {
+        "OS / family": "Mac OS X",
+        "Version / scenario": "10.4/10.5",
+        "ISA / ABI": "PowerPC"
+      },
+      "requires_all": [
+        "java14_reader"
+      ],
+      "audience_bucket": "tiger-ppc"
+    },
+    {
+      "id": "68k-vector",
+      "selector": {
+        "OS / family": "Classic Mac",
+        "Version / scenario": "System 7 / 8 / 9",
+        "ISA / ABI": "68k"
+      },
+      "requires_all": [
+        "vector68k_port"
+      ],
+      "audience_bucket": "classic-68k"
+    }
+  ]
+}
