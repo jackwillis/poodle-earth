@@ -32,6 +32,7 @@
 - [CD-ROM atlas research](research/cd-rom-atlas-architecture.md)
 - [Cross-platform frontends and distribution](research/cross-platform-frontends-and-distribution.md) (exploratory, nonbinding)
 - [November 2026 platform RICE methodology, scenario and package-channel snapshots](research/platform-rice-2026-11.md) (hypothetical, not adoption forecasts)
+- [Runnable platform-strategy portfolio prototype](../research/platform-strategy/README.md) (illustrative, nonbinding; dependency, budget and Pareto model)
 - [Historical Java 1.4/1.1 runtime evidence and licensing research](research/historical-java-compatibility.md) · [proposed PE-JAVA scientific protocol](research/pe-java-experimental-protocol.md) (research only; no implementation authorized)
 - [November 2026 CMake audit and post-audit record](research/repository-cmake-audit-2026-11.md) (dated observations, existing #126 ownership)
 - [v0.2 repository modernization proposal](design/repository-modernization-v0.2.md) (planning only; no approved moves or release gate)
