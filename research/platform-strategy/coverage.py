@@ -106,6 +106,18 @@ def validate_ledger(records, rows):
             raise ValueError("Evidence needs explicit full_scenario boolean")
         if rec["level"] in LEVELS[4:] and not rec.get("native_validation"):
             raise ValueError("Acceptance/published requires native_validation evidence")
+        if rec["full_scenario"]:
+            # One top-level claim cannot leap over unproved build, run, and
+            # acceptance stages. All preceding stages must be evidenced for
+            # the identical whole scenario, frontend and revision.
+            required = list(LEVELS[1:LEVELS.index(rec["level"])])
+            stages = rec.get("verified_stages", {})
+            if not isinstance(stages, dict) or any(
+                    not isinstance(stages.get(k), str) or not stages[k].strip()
+                    for k in required):
+                raise ValueError("Full-scenario claim skips a required proof stage")
+            if rec["level"] == "published" and not rec.get("publication_url"):
+                raise ValueError("Published claim requires an official publication URL")
     return index
 
 
