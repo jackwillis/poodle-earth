@@ -2,11 +2,11 @@
 
 **Status:** Exploratory, documentation-only research; not an accepted architecture decision, platform support statement, release requirement, or authorization to implement or run anything. **Related:** [#183](https://github.com/jackwillis/poodle-earth/issues/183), [draft prototype PR #184](https://github.com/jackwillis/poodle-earth/pull/184), [#114](https://github.com/jackwillis/poodle-earth/issues/114), [#176](https://github.com/jackwillis/poodle-earth/issues/176), [proposed ADR #193](https://github.com/jackwillis/poodle-earth/pull/193), [platform RICE archive](platform-rice-2026-11.md), [cross-platform research](cross-platform-frontends-and-distribution.md).
 
-**Question:** Which future Poodle Earth targets could reuse an optional FLTK desktop workbench, what does that reuse *not* buy us, and which inexpensive tests would materially improve the decision?
+**Question:** Which future Poodle Earth targets could reuse an FLTK desktop frontend as their **preferred public Unix interface**, which targets would be better served by Xlib, and which inexpensive tests would improve those choices? The reusable FLTK implementation remains optional at build time until accepted on particular targets.
 
 ## Corrections established during review
 
-1. **FLTK does not replace Xlib by default.** The November 18 direction in [#183's comments](https://github.com/jackwillis/poodle-earth/issues/183) deliberately retains a minimal low-dependency Unix Xlib Reader and reference; an FLTK workbench is a richer optional frontend. Do not count eliminating Xlib as a benefit.
+1. **Product direction updated on November 21, 2026: one preferred Unix frontend per qualified target.** The November 18 direction to develop FLTK as an optional richer workbench alongside the minimal Xlib Reader was refined: **FLTK is now the intended default Unix experience wherever its build, runtime, UX and resource costs are acceptable**. Xlib remains the fallback/reference for Unix targets where FLTK is unavailable or impractical. Do **not** routinely ship competing FLTK and Xlib editions for the same platform. This is a *future target-selection policy*, not a claim of successful FLTK qualification, present binary distribution, or permission to remove Xlib. Maintenance savings from pausing Xlib are hypothetical until realized.
 2. **Toolkits are not platform certifications.** A toolkit's documented platform backend, a pkgsrc binary, a cross-compiled Poodle Earth program, a GUI runtime smoke test, and a published supported artifact are different types of evidence.
 3. **Windows XP is unresolved.** [FLTK 1.4 introduction](https://www.fltk.org/doc-1.4/intro.html) includes XP in historical support language, while [upstream Windows README](https://github.com/fltk/fltk/blob/master/README.Windows.txt) cautions that FLTK 1.4 and later may require Windows 10. These documents cannot establish a specific 1.4 build's XP import/API/CRT compatibility. Pin version/commit and test actual imports and an XP guest.
 4. **No broad generic presenter is assumed.** [#114](https://github.com/jackwillis/poodle-earth/issues/114) has a null hypothesis: small separate native adaptations may remain cheaper. The accepted [ADR 0002](../adr/0002-rendering-shared-code-and-usability.md) and proposed [ADR #193](https://github.com/jackwillis/poodle-earth/pull/193) remain separate from this research.
@@ -63,7 +63,19 @@ flowchart TD
     OSX -.-> VALID
 ```
 
-The graph is a **dependency/reuse hypothesis graph**, not a causal DAG or a set of certified support claims. Shared *semantics* do not imply identical window layouts, event loops, fonts, distribution artifacts or user experiences.
+The graph is a **dependency/reuse hypothesis graph**, not a causal DAG or a set of certified support claims. The parallel Xlib and FLTK branches represent available **engineering alternatives**, *not* a promise to distribute both to users on a target. Shared *semantics* do not imply identical window layouts, event loops, fonts, distribution artifacts or user experiences.
+
+## Intended Unix product selection (owner direction, 2026-11-21)
+
+For each separately qualified OS/architecture/runtime target, publish **one preferred Poodle Earth application** under the same public identity and command, rather than routinely asking users to choose a UI toolkit:
+
+1. If the FLTK frontend passes target-specific build, runtime, interaction, performance, dependency and packaging acceptance, prefer FLTK as the distributed Unix frontend.
+2. Otherwise, if Xlib passes that target's acceptance gates, distribute Xlib as a compatibility implementation. A constrained historical system may legitimately prefer Xlib even when FLTK technically compiles.
+3. If neither implementation is qualified, do not claim a supported binary. Keep internal comparative builds where useful; **one preferred public distribution** does not prohibit development/test alternatives.
+
+This **supersedes the November 18 assumption of permanently complementary public Unix applications**, not the existing Xlib baseline, tests or platform qualification evidence. Xlib development may eventually become maintenance-only or paused, but no source freeze, removal, test deletion or unsupported-platform declaration has been authorized. There is no mandatory pixel-level or widget-level frontend parity; share the geographic core and established semantic behavior (#114), and avoid a broad UI framework.
+
+**Release interaction:** [#212](https://github.com/jackwillis/poodle-earth/issues/212) currently establishes **v0.1.3 as initial Unix distribution using the existing Xlib/X11 application** and **v0.1.4 as PoodleScripts**, not FLTK. Keep these release directions intact. Xlib may ship as a **transitional** Unix implementation while FLTK is still unqualified. The earlier tentative v0.1.4 FLTK suggestion in [#183](https://github.com/jackwillis/poodle-earth/issues/183) is superseded as a scheduling idea. Migrating a target to FLTK requires a distinct owner-approved release/product decision, evidence of usability and migration behavior (including configuration when persistence exists), and no promise of permanent parallel packages.
 
 ## What already exists in Poodle Earth
 
@@ -73,6 +85,8 @@ The graph is a **dependency/reuse hypothesis graph**, not a causal DAG or a set 
 - Upstream [FLTK](https://www.fltk.org/) documents X11/Wayland, Win32 and Cocoa. [FLTK 1.4 Wayland guidance](https://www.fltk.org/doc-1.4/wayland-devel.html) also warns against assuming X11-specific native handles work unchanged. Select/measure backend per environment.
 
 ## Target-specific reuse hypotheses
+
+The table below is a technical qualification matrix, **not** a list of simultaneously shipped frontend variants. FLTK's intended default role applies only after qualification; otherwise the currently working Xlib application remains the practical Unix reference.
 
 | Target / frontend | Existing evidence | Shared investment plausibly reused | Separate work and acceptance gate |
 | --- | --- | --- | --- |
@@ -109,10 +123,10 @@ The marginal benefit is conditional: `Delta V(p | completed investments)`; the m
 | **4** | #176: pinned FLTK vs raw Win32 control and import audit | Windows XP/98 separate cases, authentic guest required for each. A failed FLTK probe need not block Win32. | Whether Windows reuse is economical |
 | **5** | NetBSD/macppc GUI, only after owner authorization | Compare local X server vs SSH-forwarded display, partition/RSS and input/paint timings; no assumed performance from pkgsrc listing. | NetBSD package eligibility |
 
-**Next decision now:** unblock the existing Linux #184 FLTK-enabled build with available development packages and usable Xvfb/local X11, then perform paired comparison. Do not open a parallel implementation ticket or modify the source via this research. 
+**Next technical gate now:** unblock the existing Linux #184 FLTK-enabled build with available development packages and usable Xvfb/local X11, then perform paired comparison. This determines whether FLTK can *eventually* become the preferred Unix frontend on Linux; it does **not** reopen v0.1.3's approved Xlib packaging scope or replace the v0.1.4 PoodleScripts theme. Do not open a parallel implementation ticket or modify the source via this research. 
 
 ## Limits, provenance and ownership
 
 This research examined the main-branch documents, #183 with its November 18 owner-direction comment, #114, #176, #193 and draft PR #184, plus official FLTK and pkgsrc documentation (web verification on November 21, 2026). Source-backed claims above are narrower than the broader portability hypothesis. It does not independently reproduce the draft's local tests, benchmark a FLTK build, inspect the full draft source line-by-line, or measure owner-time. The model remains research only.
 
-**No implementation, package release, accepted-ADR modification, new data source/license, G4 access, issue ownership/status change, milestone adjustment or support promise follows from this document.** Research updates belong with #183/#114/#176, with existing #213 preserved as historical archive rather than reopened.
+**No implementation, package release, accepted-ADR modification, new data source/license, G4 access, issue ownership/status change, milestone adjustment or support promise follows from this document.** This amendment records the owner-stated product preference without changing the approved #212 release sequence; research updates belong with #183/#114/#176, with existing #213 preserved as historical archive rather than reopened.
