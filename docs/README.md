@@ -29,6 +29,7 @@
 - [Rendering and portability experiment registry](research/rendering-experiment-program.md) (exploratory, nonbinding)
 - [Architecture decisions](adr/0001-m2-to-m5-decisions.md) · [atlas builder boundary](adr/0003-atlas-production-boundary.md)
 - [Shared presentation](design/shared-presentation-architecture.md) · [rendering backends and execution](research/rendering-backends-and-execution.md) (exploratory, nonbinding)
+- [Cursor affordance and native-provider proposal](design/cursor-affordance-contract.md) (unaccepted; issue #242)
 - [CD-ROM atlas research](research/cd-rom-atlas-architecture.md)
 - [Cross-platform frontends and distribution](research/cross-platform-frontends-and-distribution.md) (exploratory, nonbinding)
 - [November 2026 platform RICE methodology, scenario and package-channel snapshots](research/platform-rice-2026-11.md) (hypothetical, not adoption forecasts)
