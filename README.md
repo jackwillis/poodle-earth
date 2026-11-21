@@ -5,7 +5,7 @@ cities, switch between **Map** and **Relief**, shade the night side and measure
 great-circle distances. All geographic data are built in; no network connection
 is used.
 
-**[Download Poodle Earth v0.1.1](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.1)**
+**[Download Poodle Earth v0.1.2](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.2)**
 
 Choose a StuffIt (`.sit`) archive or a hybrid CD image (`.iso`). The release page also includes matching source and checksums.
 
@@ -25,7 +25,8 @@ Captured on a Power Mac G4 under **bare Mac OS 9.2.2** on November 17,
    together in a folder on your hard disk.
 2. Double-click **Poodle Earth**. Drag to turn the globe, double-click to center
    and zoom, and click a country or city for its information card.
-3. Choose Map or Relief in the sidebar or View menu. Use `+` / `-` to zoom,
+3. Choose Map or Relief in the sidebar or View menu. Country names appear after
+   the globe settles; **View → Country Names** toggles them. Use `+` / `-` to zoom,
    `D` for night shading and `M`, then two clicks, to measure a distance.
 
 Use Finder to copy the application: it needs both its data and resource forks.
@@ -56,8 +57,9 @@ file or custom application icon. The v0.1.0 preview can leave an unfinished glob
 edge; turn or zoom to repaint it. Jack later reported sustained use without
 recurrence, without a structured regression test. See the [changelog](CHANGELOG.md)
 for changes after v0.1.0 and [v0.1.1 notes](docs/release-notes-0.1.1.md).
-[v0.1.2 release notes](docs/release-notes-0.1.2.md) summarize the country-name
-update. Until v0.1.2 is published, the download above remains v0.1.1.
+[v0.1.2 release notes](docs/release-notes-0.1.2.md) summarize country labels,
+verified distributions and native Power Mac G4 acceptance. The screenshots above
+were captured from an earlier build, before the label feature shipped.
 
 ## Build and contribute
 

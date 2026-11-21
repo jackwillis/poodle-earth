@@ -58,6 +58,10 @@ The [v0.1.1 release](https://github.com/jackwillis/poodle-earth/releases/tag/v0.
 matching source, the release manifest and SHA-256 checksums. Use the published
 checksums to verify the release image.
 
+## v0.1.2 final release evidence (November 21, 2026)
+
+The owner [accepted the exact v0.1.2 release ISO](https://github.com/jackwillis/poodle-earth/issues/119#issuecomment-7066176502) built from `68e40b3e5069f92cc5b9e9426379441cd00ef9c3`: SHA-256 `4e9b82304743902a63af2c02db8e6d006776e6d02eb081ce79d08f930acefb3a`. A CD-R was burned and read back byte-identical on a second check (the first read-back mismatched; subsequent direct reads matched). On the physical G4 under bare Mac OS 9.2.2 the CD mounted, the Finder-copied application launched and About reported 0.1.2. This is owner-reported acceptance of that specific release artifact, separate from the older PR #172/0.1.1 tests; it does not prove every emulator, optical drive or platform.
+
 ## Build and verify on Linux
 
 From a clean checkout and with the release workflow's Retro68 and Rust images:

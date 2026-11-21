@@ -1,7 +1,7 @@
 # Poodle Earth user guide
 
 Poodle Earth is an offline globe for PowerPC Classic Macs. This guide covers the
-published [v0.1.1 release](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.1).
+published [v0.1.2 release](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.2).
 
 ## Install from StuffIt
 
@@ -20,7 +20,7 @@ unwrapped application when that path is uncertain.
 
 ## Install from an ISO or CD
 
-Download the hybrid ISO from the [v0.1.1 release](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.1).
+Download the hybrid ISO from the [v0.1.2 release](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.2).
 The [CD guide](os9-cd-image.md) describes the format and test evidence.
 
 1. In a compatible **PowerPC** Mac emulator, attach the image to the virtual
@@ -31,9 +31,12 @@ The [CD guide](os9-cd-image.md) describes the format and test evidence.
    both License files and DataCredit into it in Finder, then launch the copy.
    Finder uses the HFS view and preserves both forks; StuffIt is unnecessary.
 
-Jack launched the tested image directly from CD and after copying in ClassicMac
-4.7.0 (emulated G4, Mac OS 9.2.1), and tested the burned disc on a physical G4
-under bare Mac OS 9.2.2. This is evidence for that image and those environments.
+The owner verified the **v0.1.2 release ISO** from a burned CD-R on a physical
+Power Mac G4 running bare Mac OS 9.2.2: the disc mounted, a Finder-copied app
+launched, and About showed 0.1.2. The final v0.1.2 StuffIt archive also passed
+native launch and interaction checks ([acceptance evidence](https://github.com/jackwillis/poodle-earth/issues/119#issuecomment-7066176502)).
+The earlier v0.1.1 CD was separately tested in ClassicMac 4.7.0 (emulated G4,
+Mac OS 9.2.1); that observation does not certify v0.1.2 in the emulator.
 Copying to disk is the recommended installation path. On CD the memory settings
 in Get Info are read-only; they become editable on the hard-disk copy after quit.
 
@@ -49,6 +52,7 @@ in Get Info are read-only; they become editable on the hard-disk copy after quit
 | Switch north-up / trackball dragging | `T` |
 | Switch Map / Relief | Sidebar, View menu, or plain `S` |
 | Toggle graticule / borders | `G` / `B` |
+| Toggle country names (settled views) | View > Country Names |
 | Toggle night side | `D` |
 | Measure | `M`, then click two points on the globe |
 | Copy the selected information | Edit > Copy or Command-C |
@@ -58,7 +62,9 @@ in Get Info are read-only; they become editable on the hard-disk copy after quit
 Click a country or nearby city to show its information card. A selected country
 has an orange outline and dither fill. A click on the sea clears selection.
 While moving, the app draws simpler lines; after stopping, terrain fills in
-progressively. Allow refinement to finish before judging the final image.
+progressively and country names appear. Names hide during drag and zoom and
+can be switched off through View > Country Names. Allow refinement to finish
+before judging the final image.
 
 ![Laos outlined on the Relief globe, with its country information in the sidebar](../site/images/os9-country-selected.png)
 
@@ -71,7 +77,7 @@ is English-only; place names are ASCII.
 
 ## Scale, compass and controls help
 
-Current main adds a distance scale calibrated at the map center and a compass rose
+The released application has a distance scale calibrated at the map center and a compass rose
 that follows the view's north. The scale follows the units preference and stays
 visible during movement. It is a local scale on a globe, not a constant distance
 for every point in the picture.
@@ -94,7 +100,7 @@ The images in this guide were captured by Jack on bare Mac OS 9.2.2 using build
 - **Small window or refused enlargement:** quit the app, select its hard-disk
   copy in Finder, and open File > Get Info > Memory. The default preferred size
   is 24 MB and minimum is 12 MB. Raise Preferred if enough RAM is available.
-  Window size is bounded by available application memory. Current main explains
+  Window size is bounded by available application memory. v0.1.2 explains
   a refused enlargement once per session; v0.1.0 does not show that explanation.
 - **Application will not open:** confirm the guest is PowerPC, copy again using
   Finder or re-expand the `.sit` on the Mac, and check free memory. The original
