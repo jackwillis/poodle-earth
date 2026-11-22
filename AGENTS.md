@@ -108,6 +108,50 @@ issues/labels/milestones as the source of truth.
 
 ## 5. Safety and invariants (kept from CLAUDE.md and docs/handoff.md)
 
+### Canonical build policy — Linux amd64, cross-compilation and CI (owner decision, 2026-11-21)
+
+**All compilation is on Linux amd64.** This is a governing rule for every agent, not a
+platform preference. Build Poodle Earth, its generators and packaging tools, and
+cross-toolchains on Linux amd64. For every other target OS/architecture (including
+NetBSD/amd64, NetBSD/macppc, Classic Mac PowerPC and 68k), **cross-compile from
+Linux amd64**. A native Linux amd64 build for Linux delivery or host tests is
+necessarily native to the canonical build platform; it does not authorize native
+builds on other targets. "Cross-compiling always" means **never making the target
+machine the compilation host**.
+
+**Do not substitute target-host compilation.** No native compilation on the G4,
+inside a NetBSD VM, in an emulator, or on another target OS/machine just because
+a pkgsrc recipe, dependency, toolchain or CI job is difficult. A target-host
+`make package` that compiles sources is still compilation, not merely verification.
+Target systems are for inspecting packages, installing/removing, running tests,
+observing UI/performance, and acceptance. Prefer Linux-side package assembly,
+with accurate provenance labels (a pkgsrc-format package is not necessarily
+produced by pkgsrc `make package`). Historical native pkgsrc experiments are
+evidence, **not standing approval** for future target-host builds.
+
+**CI is canonical for release artifacts.** GitHub Actions on clean Linux amd64
+runners is the intended authoritative build and packaging path. Reproduce its
+pinned toolchains, source, sysroots, compiler flags, build scripts, dependency
+versions, manifests and checksums locally; record the exact source commit,
+workflow/run and artifact hashes. Publish only the **exact CI-produced candidate**
+qualified by applicable native acceptance and owner sign-off. Local scratch
+builds prove feasibility, not canonical release provenance. Where a platform's
+CI build is not implemented yet, say so: do not claim its artifacts are
+CI-reproducible or release-ready.
+
+**Caches are optional accelerators, never inputs of record.** Every pipeline must
+succeed from an empty cache with verified, pinned inputs. Validate restored
+toolchains and sysroots; do not depend on a private workstation, mutable cache,
+unrecorded binary or target-host build. Keep untrusted PR builds from poisoning
+trusted release caches.
+
+**Stop rather than improvise exceptions.** If Linux amd64 cross-building or
+packaging proves infeasible, stop, preserve evidence and present the blocker and
+alternatives to the owner. Only a new, explicit owner authorization for a
+narrowly defined exception permits another compilation host; do not infer one
+from precedent, an agent plan, or a target's package-manager conventions.
+Do not enable CI automation or change release authority without separate approval.
+
 - The G4 is shared hardware (NetBSD, Tiger Classic, bare OS 9). Never compile on it,
   change display permissions, overwrite the owner's binaries, erase or mount volumes,
   or end another session's process. Cross-build on the host, use fresh distinctive
