@@ -179,3 +179,65 @@ The live issue tracker still assigns #173, #43, #42, #24 and #62 to v0.3 at the 
 ### Tests and acceptance boundaries
 
 This document is planning, not a build or qualification run. A merged implementation PR is not sufficient on its own to certify the end-to-end workflow. Actual native tests, hardware observations, source/data licenses, and release authorization remain separate. Keep v0.3 optional improvements as opportunities, not automatic "status: ready" assignments.
+
+
+## Whole-backlog granularity and release flow — planning proposal, 2026-11-22
+
+**Standing:** planning only. No issue moves, release gate changes, platform support declarations, readiness labels, new licenses, or hardware authorization. Previous owner-approved v0.3 tightening remains in force.
+
+### Sizing
+- XS: one localized fix, test, documentation correction or UI detail.
+- S: preferred unit — one demonstrable, testable behavior with bounded fallback.
+- M: several related outcomes; split when acceptance evidence, integration or decision ownership diverges.
+- L: epic or cross-release workstream; never an all-or-nothing release gate.
+- Research: one falsifiable question, a bounded probe, findings and a decision; not a mandatory feature.
+
+Size reflects review and integration boundaries, not estimated coding hours. Avoid artificial fragmentation.
+
+### Suggested continuously progressive release stories
+
+| Version | User outcome | Natural smallest increments | Standing |
+| --- | --- | --- | --- |
+| 0.1.x | Working downloadable Classic atlas, Unix packaging and basic scripts | Packaging correctness, basic labels, cooperative script execution | Existing scopes prevail |
+| 0.2 | Understandable interactive atlas | Text → symbols → hit-testing → feedback → information | Existing thematic milestone |
+| 0.3 | Safe optional atlas data within bounded memory | Validate and load → account → evict → fail safely → verify | Approved tightened goal, metadata cleanup pending |
+| 0.4 | Reproducible expanded offline editions | Qualify sources → assemble regional packs → distribute → native loading evidence | Existing milestone; proposed focus |
+| 0.5 | Living Atlas | Sourced fact → entity link → history → curated Wisconsin example | New candidate, not approved milestone |
+| 0.6 | Portable Workbench | Shared semantics → qualified frontend → installation and actual native use | New candidate, not approved milestone |
+| 0.7 | Geographic Workstation | Measurement → overlays → reusable geographic queries | Directional only |
+| 0.8 | Wider platforms and editions | One portfolio-justified platform/edition proven stepwise | Directional only |
+| 0.9 | Product integration and stabilization | Resolve acceptance/parity debt, documentation and user-polish gaps | Newly proposed, not approved |
+| 1.0 | Dependable offline geographic atlas | Owner-approved supported features and platforms tested end-to-end | Not defined |
+
+### Cross-release issue family slicing
+
+| Area | Existing issue anchors | Reviewable steps |
+| --- | --- | --- |
+| Geographic labels/discovery | #35 #38 #41 #88 #92 #220 | Stable rendering → distinguish symbols → select/click → hover and navigate |
+| Native interaction | #23 #83 #90 #114 #148 #242 | Semantic contract → frontend adapter → parity regression; multi-window remains optional |
+| Data correctness and editions | #52 #53 #151 #152 #153 | Source audit → identities → geographic selection policy → reproducible edition |
+| Packs and memory | #26 #29 #31 #48 #49 #55–60 | Bounded read → validate/publish → safe lifetimes → budget/evict → recover → test |
+| Hypermedia | #137 #168 | One sourced fact → one related place link → Back/Forward → curated regional story |
+| Rendering experiments | #15–22 #25 #30 #75 #145 #147 #167 | One research question → independent quality/performance evidence → optional narrow implementation |
+| Portability | #157 #176 #178 #183 #237–240 #247 #253 | Compile ≠ link ≠ native launch ≠ install ≠ verified behavior ≠ supported platform |
+| CI and release engineering | #6 #102 #105 #164–166 #249 | Fix one evidenced risk → prove stable check → deliberate tier promotion |
+| Scripts and console | #63 #221–225 #232 | Run bounded script → stable transcript → UX shortcut → tours; interpreter research separate |
+
+### Grooming order and decisions
+
+1. Audit *every open issue*, retaining existing IDs: workstream, milestone, size, required/optional/research, linked PR, dependency, evidence platform, blocker, and next smallest completion condition.
+2. Reconcile 0.1.x–0.2 already-approved scopes first; never silently repurpose open release issues.
+3. Apply approved v0.3 nonblocking-feature deferrals when milestone-clearing capability exists, while keeping the pack/memory sequence intact.
+4. Tighten v0.4 around one reproducible full/regional offline edition; keep optional terrain, HTTPS fetching and interpreter work independent.
+5. Populate v0.5/v0.6 only with minimal demonstrated vertical slices before bulk issue reassignment.
+6. Keep v0.7–v0.9 directional until dependencies have evidence. Review quarterly or after each release.
+
+### Consistency rules
+- Every mandatory issue traces to the release's one-sentence product promise.
+- A research result is not permission to implement or a native-support claim.
+- Avoid creating unnecessary new trackers; write small acceptance slices into existing issues where practical.
+- Every dependency identifies a specific necessary artifact, not completion of an entire epic.
+- Always distinguish host tests, cross-builds, emulator results and real hardware evidence.
+- No artificial issue quota or deadline; smoothness means few surprise blockers and regularly useful shipping slices.
+
+**Next proposed grooming action:** create an owner-reviewable before/after assignment matrix for *all* open issues, beginning with the v0.2–v0.4 assigned sets and the unmilestoned list. Update the live snapshot at that time. This section alone does not implement those moves.
