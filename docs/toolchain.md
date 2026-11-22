@@ -3,14 +3,17 @@
 ## Canonical build-host and release workflow
 
 **Owner policy (2026-11-21): [AGENTS.md](../AGENTS.md#5-safety-and-invariants-kept-from-claudemd-and-docshandoffmd) is authoritative.**
-All compilation, including compiler/tool builds and Linux builds, happens on **Linux amd64**.
-Other operating systems and architectures are **cross-targets**. NetBSD/amd64 VMs,
+All compilation, including compiler/tool builds, happens on a **modern Linux host**:
+prefer current Ubuntu or Fedora, on any Linux CPU architecture supported by the
+toolchain. Ubuntu amd64 is today's practical CI default, not a permanent rule.
+Other operating systems are **cross-targets**. NetBSD/amd64 VMs,
 NetBSD/macppc on the G4, Classic Mac OS and other target environments are for
 native package/runtime/GUI acceptance, **not native compilation**, even when a
-package manager normally builds from source. For Linux amd64 itself, local host
-builds and tests are allowed; they are not cross-compilation.
+package manager normally builds from source. For Linux targets, native host builds and tests on Linux are allowed; these
+are not cross-compilation. A pinned Debian 12 build environment may be used to
+meet the glibc 2.34+ target.
 
-**Reproducible GitHub Actions on Linux amd64 is the canonical release-build path.**
+**Reproducible GitHub Actions on modern Linux is the canonical release-build path.**
 Pin source, toolchains, target sysroots, flags, dependencies and output hashes;
 verify a clean cold-cache build, and use caches only to save time. Publish only
 the exact approved CI artifact after native acceptance. Local experimental
