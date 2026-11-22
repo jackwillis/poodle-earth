@@ -85,7 +85,7 @@ Start at
 [Contributing](CONTRIBUTING.md) for verification expectations,
 [toolchains](docs/toolchain.md) for Retro68/Classic builds, and the
 [documentation index](docs/README.md) for architecture, formats and research.
-The internal CMake target `globe-x11` and C++ `globe` namespace remain unchanged;
+The CMake project is `poodle-earth` and its X11 target `poodle-earth-x11`; the C++ `globe` namespace is unchanged;
 the Unix executable is named `poodle-earth`.
 The repository is `jackwillis/poodle-earth`; the public rename is tracked in
 [#124](https://github.com/jackwillis/poodle-earth/issues/124).
