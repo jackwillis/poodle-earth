@@ -144,3 +144,38 @@ Disposition language: **candidate** means suggest owner evaluation, not an autom
 6. For every accepted move, log origin, destination, rationale, owner approval and acceptance/parity impact on the affected issue.
 
 **Recommended next task:** owner review of v0.3 mandatory/optional scope and the #173 timezone deferral. It gives the largest reduction in potential release-gate inflation without requiring implementation, hardware or license decisions.
+
+
+## Owner-approved v0.3 tightening — November 22, 2026
+
+**Decision:** v0.3's defining deliverable is *reliable external offline data within bounded memory*, not a general feature bundle. The owner approved the scope tightening in the project steering conversation. **This section supersedes the preceding speculative v0.3 disposition where they differ.** It is a release-scope planning decision; GitHub issue milestone changes remain separately auditable.
+
+### Mandatory end-to-end release outcome
+
+On an accepted target, launch with the embedded baseline, load a vetted optional local pack, use its detail, navigate away and evict as needed, return and reload, and degrade safely with a missing, corrupt or unaffordable pack. Ordinary interaction stays responsive, no network is required, and read-only distribution does not assume writes beside the application.
+
+**Keep in the v0.3 critical path (scope only as necessary for that demonstration):** #26 stable handles, #48 Classic external pack lifecycle (already in review; do not take over its PR), #49 read-only-volume behavior, #55 ledger, #56 automatic budget/degradation ladder, #57 safe eviction and lazy loading, #58 low-memory/failure behavior, #59 bounded metrics, #60 deterministic memory regression; #10 partitions/requirements and #17 immutable-data/mutable-workspace boundary feed acceptance. #29 and #31 contribute only the bounded format/cache requirements necessary for vetted packs and may retain broader nonblocking investigations. #105 contributes targeted parser/error/allocation tests, not a blanket audit-completion gate.
+
+**Release candidate sequence (bounded vertical slices):**
+1. **A: load and fallback.** Document and qualify one real optional pack through resource identity, correct Classic file-path handling, corruption rejection and read-only use. No network, downloader or compressed-format redesign prerequisite.
+2. **B: account and bound.** Track peak counted memory and demonstrate a fixed budget and safe eviction while retaining the embedded world.
+3. **C: survive failures.** Inject allocation, I/O, malformed-pack and cancellation failures; verify no dangling handles, crash or unbounded modal alerts.
+4. **D: evidence.** Run deterministic host tests and appropriate native Classic/X11 functionality, G4/OS 9 memory acceptance only with separate machine authorization, and exact released-package/source verification.
+
+**Optional, not v0.3 graduation blockers, and approved for removal from v0.3 assignment when possible:**
+- #173 Time on Earth: defer to a later geographic-knowledge/overlay milestone (v0.5 *candidate*, not a new data-license or release promise). Keep offline timezone/tzdb/polygon and ODbL qualification in the issue.
+- #43 Save/copy view: opportunistic patch or separate UX milestone; no v0.3 gate.
+- #42 Remember view/look: opportunistic patch; coordinate consent and #49 Preferences path, but persistence is not the pack-release gate.
+- #24 Expanded place search: v0.4 *candidate* aligned with larger editions; not essential for pack memory safety.
+- #62 Activity Log window: opportunistic patch; #59 instrumentation itself remains v0.3 essential; the GUI viewer does not.
+- #105 broad mutation/audit closeout: leave targeted correctness tests in the v0.3 path, but do not require all research completion.
+
+**Explicit non-goals for v0.3:** timezone overlays, HTTPS download/distribution (#28), arbitrary full-edition data volume (#50), a general script interpreter (#63), predictive resource management, all-platform ports, or visual polish unrelated to an accepted safe pack lifecycle. Such work can ship earlier independently if authorized, without altering the v0.3 graduation story.
+
+### Issue metadata reconciliation checklist
+
+The live issue tracker still assigns #173, #43, #42, #24 and #62 to v0.3 at the decision point. Remove their v0.3 milestone assignments or move to a *formally approved existing* appropriate milestone; do **not** create or assume v0.5 solely to move #173. Keep these issues open, their work preserved and their priorities/statuses unchanged. The connected GitHub issue update action currently cannot clear milestones; record this as an *outstanding metadata operation* until verified through an authorized action. Avoid falsely claiming the official milestone has been tightened until the moves actually land. Also inspect #105's milestone: its audit scope is nonblocking, even if the issue remains under v0.3 for coordination.
+
+### Tests and acceptance boundaries
+
+This document is planning, not a build or qualification run. A merged implementation PR is not sufficient on its own to certify the end-to-end workflow. Actual native tests, hardware observations, source/data licenses, and release authorization remain separate. Keep v0.3 optional improvements as opportunities, not automatic "status: ready" assignments.
