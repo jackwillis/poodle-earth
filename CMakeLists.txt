@@ -248,6 +248,22 @@ if(GLOBE_BUILD_TESTS)
                          --exit-when-done --verify-pixels --stats)
         set_tests_properties(x11_pixels_${depth} PROPERTIES TIMEOUT 120)
       endforeach()
+      # Failure injection is confined to this test executable, using linker wrapping.
+      include(CheckLinkerFlag)
+      check_linker_flag(CXX "LINKER:--wrap=XCreateImage,--wrap=malloc" GLOBE_LINKER_WRAP)
+      if(GLOBE_LINKER_WRAP)
+        add_executable(test_x11_resize tests/test_x11_resize.cpp
+          src/platform/x11/info_window.cpp src/platform/x11/style_window.cpp src/platform/x11/prefs_pane.cpp)
+        target_include_directories(test_x11_resize PRIVATE ${X11_INCLUDE_DIR})
+        target_link_libraries(test_x11_resize PRIVATE globe_embedded_fineelevation globe_embedded_places
+          globe_embedded_countries globe_embedded_atlas globe_embedded_elevation globe_platform_common
+          globe_clock_posix ${X11_LIBRARIES})
+        target_link_options(test_x11_resize PRIVATE "LINKER:--wrap=XCreateImage,--wrap=malloc")
+        target_compile_options(test_x11_resize PRIVATE -Wall -Wextra -Wpedantic)
+        add_test(NAME x11_resize COMMAND ${XVFB_RUN} -a -s "-screen 0 1024x768x24"
+          $<TARGET_FILE:test_x11_resize>)
+        set_tests_properties(x11_resize PROPERTIES TIMEOUT 30)
+      endif()
       add_executable(test_x11_toolbar tests/test_x11_toolbar.cpp)
       target_include_directories(test_x11_toolbar PRIVATE ${X11_INCLUDE_DIR})
       target_link_libraries(test_x11_toolbar PRIVATE globe_core ${X11_LIBRARIES})

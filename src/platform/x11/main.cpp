@@ -108,6 +108,7 @@ double ms_since(std::uint64_t t0) {
 }
 
 class App {
+    friend struct ResizeTest; // X11 integration fixture; no runtime failure-injection switches.
   public:
     App(Display* dpy, const Scene& scene, ElevationPacks& packs, const Options& opt)
         : dpy_(dpy), scene_(scene), packs_(packs), opt_(opt),
@@ -337,6 +338,9 @@ class App {
             XDestroyImage(img);
             return false;
         }
+        // Every candidate allocation succeeded. Stop old continuations before releasing any
+        // storage they could use; failure above leaves both the job and the accepted view intact.
+        runner_.cancel(nullptr, model_.camera);
         if (image_ != nullptr) {
             XDestroyImage(image_);
         }
@@ -460,6 +464,11 @@ class App {
     // One frame per redraw request, exactly as interactive use would draw them.
     bool play_script() {
         for (const Msg& msg : script_) {
+            if (const auto* r = std::get_if<Resize>(&msg)) {
+                if ((r->width != model_.camera.width || r->height != model_.camera.height) &&
+                    !make_buffers(r->width, r->height))
+                    continue; // same refusal contract as ConfigureNotify: keep the accepted view
+            }
             if (apply(msg)) {
                 return true;
             }
@@ -469,9 +478,6 @@ class App {
                     XResizeWindow(dpy_, win_,
                                   static_cast<unsigned>(model_.camera.width + StyleWindow::kWidth),
                                   static_cast<unsigned>(model_.camera.height));
-                    if (!make_buffers(model_.camera.width, model_.camera.height)) {
-                        return true;
-                    }
                 }
                 present();
                 need_redraw_ = false;
@@ -886,13 +892,11 @@ class App {
         case ConfigureNotify: {
             const int w = ev.xconfigure.width - StyleWindow::kWidth;
             const int h = ev.xconfigure.height;
-            if (w != model_.camera.width || h != model_.camera.height) {
-                const bool q = apply(Resize{w, h});
-                if (model_.camera.width == w && model_.camera.height == h) {
-                    make_buffers(w, h);
-                }
-                return q;
-            }
+            if ((w != model_.camera.width || h != model_.camera.height) && make_buffers(w, h))
+                return apply(Resize{w, h});
+            // The WM already changed the native window. On refusal keep the old viewport at
+            // (0,0), clipped by the window, with newly exposed space in its black background.
+            // Expose uploads the retained frame; do not change the model or retry in a loop.
             return false;
         }
         case ButtonPress:
