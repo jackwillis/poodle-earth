@@ -108,16 +108,19 @@ issues/labels/milestones as the source of truth.
 
 ## 5. Safety and invariants (kept from CLAUDE.md and docs/handoff.md)
 
-### Canonical build policy — Linux amd64, cross-compilation and CI (owner decision, 2026-11-21)
+### Canonical build policy — modern Linux hosts, cross-compilation and CI (owner decision, 2026-11-21)
 
-**All compilation is on Linux amd64.** This is a governing rule for every agent, not a
-platform preference. Build Poodle Earth, its generators and packaging tools, and
-cross-toolchains on Linux amd64. For every other target OS/architecture (including
-NetBSD/amd64, NetBSD/macppc, Classic Mac PowerPC and 68k), **cross-compile from
-Linux amd64**. A native Linux amd64 build for Linux delivery or host tests is
-necessarily native to the canonical build platform; it does not authorize native
-builds on other targets. "Cross-compiling always" means **never making the target
-machine the compilation host**.
+**All compilation takes place on a modern Linux build host.** This is a
+governing rule for every agent. Prefer current Ubuntu or Fedora, with a Linux
+host CPU architecture supported by the relevant toolchains (amd64 is a useful
+current default, **not a permanent requirement**). Build Poodle Earth, its
+generators, packaging tools and cross-toolchains on Linux. For non-Linux target
+operating systems and architectures (including NetBSD/amd64, NetBSD/macppc,
+Classic Mac PowerPC and 68k), **cross-compile from Linux**. Native Linux builds
+for Linux delivery and host tests are allowed on the Linux build host. Use pinned
+Linux build environments such as Debian 12 when required for an ABI baseline.
+"Cross-compiling always" means **never making the non-Linux target machine
+or operating system the compilation host**.
 
 **Do not substitute target-host compilation.** No native compilation on the G4,
 inside a NetBSD VM, in an emulator, or on another target OS/machine just because
@@ -129,8 +132,9 @@ with accurate provenance labels (a pkgsrc-format package is not necessarily
 produced by pkgsrc `make package`). Historical native pkgsrc experiments are
 evidence, **not standing approval** for future target-host builds.
 
-**CI is canonical for release artifacts.** GitHub Actions on clean Linux amd64
-runners is the intended authoritative build and packaging path. Reproduce its
+**CI is canonical for release artifacts.** GitHub Actions on clean modern Linux
+runners is the intended authoritative build and packaging path. Ubuntu amd64 is
+a convenient initial runner, not a permanent host distro or ISA requirement. Reproduce its
 pinned toolchains, source, sysroots, compiler flags, build scripts, dependency
 versions, manifests and checksums locally; record the exact source commit,
 workflow/run and artifact hashes. Publish only the **exact CI-produced candidate**
@@ -145,8 +149,8 @@ toolchains and sysroots; do not depend on a private workstation, mutable cache,
 unrecorded binary or target-host build. Keep untrusted PR builds from poisoning
 trusted release caches.
 
-**Stop rather than improvise exceptions.** If Linux amd64 cross-building or
-packaging proves infeasible, stop, preserve evidence and present the blocker and
+**Stop rather than improvise exceptions.** If cross-building or packaging on
+a modern Linux host proves infeasible, stop, preserve evidence and present the blocker and
 alternatives to the owner. Only a new, explicit owner authorization for a
 narrowly defined exception permits another compilation host; do not infer one
 from precedent, an agent plan, or a target's package-manager conventions.
