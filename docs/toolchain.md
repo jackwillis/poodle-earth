@@ -1,5 +1,24 @@
 # Toolchains and validation — 2026-11-02
 
+## Canonical build-host and release workflow
+
+**Owner policy (2026-11-21): [AGENTS.md](../AGENTS.md#5-safety-and-invariants-kept-from-claudemd-and-docshandoffmd) is authoritative.**
+All compilation, including compiler/tool builds and Linux builds, happens on **Linux amd64**.
+Other operating systems and architectures are **cross-targets**. NetBSD/amd64 VMs,
+NetBSD/macppc on the G4, Classic Mac OS and other target environments are for
+native package/runtime/GUI acceptance, **not native compilation**, even when a
+package manager normally builds from source. For Linux amd64 itself, local host
+builds and tests are allowed; they are not cross-compilation.
+
+**Reproducible GitHub Actions on Linux amd64 is the canonical release-build path.**
+Pin source, toolchains, target sysroots, flags, dependencies and output hashes;
+verify a clean cold-cache build, and use caches only to save time. Publish only
+the exact approved CI artifact after native acceptance. Local experimental
+cross-builds, even ones accepted on hardware, are evidence pending CI integration.
+The existing CI does not yet produce every planned Unix release artifact;
+do not claim that it does. See [the release checklist](release-checklist.md)
+and the proposed [PE-CI-01 strategy](https://github.com/jackwillis/poodle-earth/pull/250).
+
 | Target | Compiler / method | Current evidence |
 | --- | --- | --- |
 | Host GCC | Fedora GCC 16.2.1, C++20, ASan/UBSan, no exceptions/RTTI | 35/35 tests, including both Xvfb depths and quiet idle |
