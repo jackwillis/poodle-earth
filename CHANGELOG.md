@@ -3,6 +3,11 @@
 Release dates are the dates of publication. Changes in an unpublished candidate
 remain under **Unreleased** until the release is published.
 
+## Unreleased
+
+- X11 keeps the current globe and rendering work usable when resize buffer
+  allocation fails, and accepts a later resize when memory is available.
+
 ## 0.1.2 — 2026-11-21
 
 - Country names appear on the settled globe. Toggle them through
