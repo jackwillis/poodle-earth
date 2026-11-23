@@ -3,7 +3,7 @@
 // X11 front end: one window showing the globe. Sleeps until input or a one-shot wake, turns
 // X events into Msgs, runs update(), and renders only when update() asks for a redraw.
 //
-//   globe-x11 [--atlas FILE] [--elevation FILE] [--size WxH] [--script TRACE [--exit-when-done]]
+//   poodle-earth [--atlas FILE] [--elevation FILE] [--size WxH] [--script TRACE [--exit-when-done]]
 //             [--idle-seconds N] [--verify-pixels] [--stats] [--no-zoom-preview]
 //             [--finish-refinement]
 //
@@ -147,7 +147,7 @@ class App {
         const int screen = DefaultScreen(dpy_);
         Visual* visual = DefaultVisual(dpy_, screen);
         if (visual->c_class != TrueColor && visual->c_class != DirectColor) {
-            std::fprintf(stderr, "globe-x11: default visual is not TrueColor/DirectColor\n");
+            std::fprintf(stderr, "poodle-earth: default visual is not TrueColor/DirectColor\n");
             return false;
         }
         depth_ = DefaultDepth(dpy_, screen);
@@ -242,7 +242,7 @@ class App {
         const Summary r = summarize(t_.render_ms.data(), t_.render_ms.size());
         const Summary p = summarize(t_.pack_ms.data(), t_.pack_ms.size());
         const Summary x = summarize(t_.present_ms.data(), t_.present_ms.size());
-        std::printf("{\n  \"tool\": \"globe-x11\",\n  \"viewport\": \"%dx%d\",\n",
+        std::printf("{\n  \"tool\": \"poodle-earth\",\n  \"viewport\": \"%dx%d\",\n",
                     model_.camera.width, model_.camera.height);
         std::printf("  \"visual_depth\": %d,\n  \"bits_per_pixel\": %d,\n", depth_,
                     format_.bits_per_pixel);
@@ -314,9 +314,10 @@ class App {
                                     static_cast<std::uint32_t>(img->blue_mask),
                                     img->byte_order == MSBFirst};
         if (!pixel_format_supported(format)) {
-            std::fprintf(stderr,
-                         "globe-x11: unsupported pixel layout (%d bpp, masks %06lx/%06lx/%06lx)\n",
-                         img->bits_per_pixel, img->red_mask, img->green_mask, img->blue_mask);
+            std::fprintf(
+                stderr,
+                "poodle-earth: unsupported pixel layout (%d bpp, masks %06lx/%06lx/%06lx)\n",
+                img->bits_per_pixel, img->red_mask, img->green_mask, img->blue_mask);
             XDestroyImage(img);
             return false;
         }
@@ -334,7 +335,7 @@ class App {
     bool load_script() {
         std::vector<std::uint8_t> bytes;
         if (!read_file(opt_.script_path, bytes)) {
-            std::fprintf(stderr, "globe-x11: cannot read %s\n", opt_.script_path);
+            std::fprintf(stderr, "poodle-earth: cannot read %s\n", opt_.script_path);
             return false;
         }
         const std::string text(bytes.begin(), bytes.end());
@@ -487,7 +488,7 @@ class App {
         FD_SET(fd, &set);
         const int ready = select(fd + 1, &set, nullptr, nullptr, deadline == 0 ? nullptr : &tv);
         if (ready < 0 && errno != EINTR) {
-            std::perror("globe-x11: select");
+            std::perror("poodle-earth: select");
             return false;
         }
         const std::uint64_t after = monotonic_ns() / 1000000ULL;
@@ -558,7 +559,7 @@ class App {
         XImage* actual = XGetImage(dpy_, win_, 0, 0, static_cast<unsigned>(fb.width()),
                                    static_cast<unsigned>(fb.height()), AllPlanes, ZPixmap);
         if (actual == nullptr) {
-            std::fprintf(stderr, "globe-x11: XGetImage failed\n");
+            std::fprintf(stderr, "poodle-earth: XGetImage failed\n");
             return false;
         }
         const std::size_t stride = pixel_row_bytes(format_, fb.width());
@@ -582,8 +583,8 @@ class App {
                 const unsigned long got = XGetPixel(actual, x, y) & mask;
                 if (got != want) {
                     std::fprintf(stderr,
-                                 "globe-x11: pixel mismatch at %d,%d: got %lx expected %lx\n", x, y,
-                                 got, want);
+                                 "poodle-earth: pixel mismatch at %d,%d: got %lx expected %lx\n", x,
+                                 y, got, want);
                     ok = false;
                     break;
                 }
@@ -1077,11 +1078,11 @@ int main(int argc, char** argv) {
         } else if (a == "--stats") {
             opt.stats = true;
         } else {
-            std::fprintf(
-                stderr,
-                "usage: globe-x11 [--atlas FILE] [--elevation FILE] [--size WxH] [--script TRACE "
-                "[--exit-when-done]] [--idle-seconds N] [--verify-pixels] [--stats] "
-                "[--no-zoom-preview] [--finish-refinement]\n");
+            std::fprintf(stderr,
+                         "usage: poodle-earth [--atlas FILE] [--elevation FILE] [--size WxH] "
+                         "[--script TRACE "
+                         "[--exit-when-done]] [--idle-seconds N] [--verify-pixels] [--stats] "
+                         "[--no-zoom-preview] [--finish-refinement]\n");
             return 2;
         }
     }
@@ -1096,7 +1097,7 @@ int main(int argc, char** argv) {
     std::size_t atlas_size = kEmbeddedAtlasSize;
     if (opt.atlas_path != nullptr) {
         if (!read_file(opt.atlas_path, atlas_file)) {
-            std::fprintf(stderr, "globe-x11: cannot read %s\n", opt.atlas_path);
+            std::fprintf(stderr, "poodle-earth: cannot read %s\n", opt.atlas_path);
             return 2;
         }
         atlas_data = atlas_file.data();
@@ -1105,33 +1106,34 @@ int main(int argc, char** argv) {
     AtlasError err = AtlasError::Ok;
     const auto atlas = Atlas::parse(atlas_data, atlas_size, &err);
     if (!atlas) {
-        std::fprintf(stderr, "globe-x11: atlas: %s\n", atlas_error_name(err));
+        std::fprintf(stderr, "poodle-earth: atlas: %s\n", atlas_error_name(err));
         return 2;
     }
 
     const auto scene = Scene::create(*atlas);
     if (!scene) {
-        std::fprintf(stderr, "globe-x11: out of memory building the scene\n");
+        std::fprintf(stderr, "poodle-earth: out of memory building the scene\n");
         return 2;
     }
 
     ElevationPacks packs;
     if (!packs.initialize(kEmbeddedElevationData, kEmbeddedElevationSize))
-        std::fprintf(stderr, "globe-x11: %s; showing outlines\n", packs.error());
+        std::fprintf(stderr, "poodle-earth: %s; showing outlines\n", packs.error());
     // Explicit imports retain their original capacity/precedence. With none, ship a finer
     // built-in level; an allocation failure retains the validated coarse fallback.
     if (opt.elevation_count == 0 &&
         !packs.add_embedded(kEmbeddedFineElevationData, kEmbeddedFineElevationSize))
-        std::fprintf(stderr, "globe-x11: optional half-degree terrain unavailable: %s\n",
+        std::fprintf(stderr, "poodle-earth: optional half-degree terrain unavailable: %s\n",
                      packs.error());
     for (unsigned i = 0; i < opt.elevation_count; ++i)
         if (!packs.import_file(opt.elevation_paths[i])) {
-            std::fprintf(stderr, "globe-x11: %s\n", packs.error());
+            std::fprintf(stderr, "poodle-earth: %s\n", packs.error());
             return 2;
         }
     Display* dpy = XOpenDisplay(nullptr);
     if (dpy == nullptr) {
-        std::fprintf(stderr, "globe-x11: cannot open display (is DISPLAY set and authorized?)\n");
+        std::fprintf(stderr,
+                     "poodle-earth: cannot open display (is DISPLAY set and authorized?)\n");
         return 1;
     }
     int rc = 0;
