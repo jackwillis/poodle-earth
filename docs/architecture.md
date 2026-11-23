@@ -15,9 +15,10 @@ code from later surface/pass/theme and fetch work.
 | `tools` | Modern pack builders, embedded resources, policy/portability checks, edition builds and size experiments |
 
 Portable code has no OS headers or clock reads. Time enters messages; update returns redraw,
-present-only, quit and replacement-wake effects. Repaint resends existing pixels and keeps active
-refinement; on X11 during a held drag it resends the image from the last upload instead of
-converting the frame being refined. A click below drag slop changes no camera, stage, generation or render request; an
+present-only, quit and replacement-wake effects. Repaint keeps active refinement. On X11, an
+Expose while a drag holds presentation resends the previously packed XImage; outside a hold it
+still converts the current frame again (`upload`). Classic update events are platform-specific
+and not covered by that X11 rule. A click below drag slop changes no camera, stage, generation or render request; an
 active drag, camera/size/data/style change invalidates old screen work. The replay remains deterministic.
 
 Sources, cached unit vectors, shading indices and workspaces allocate at load; frame paths

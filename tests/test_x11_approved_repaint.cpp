@@ -363,8 +363,8 @@ struct AfTest {
         CHECK(app.model_.generation == generation);
         CHECK(app.runner_.job() == job);
         CHECK(app.runner_.active() == (variant != Variant::Tail));
-        if (job != nullptr)
-            CHECK(app.runner_.job()->progress() >= progress);
+        if (job != nullptr) // no refinement step ran since `progress` was read, so exact equality
+            CHECK(app.runner_.job()->progress() == progress);
         std::size_t more = 0;
         while (app.runner_.active() && more < 4000000) {
             app.refine_step();
