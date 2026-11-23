@@ -262,6 +262,7 @@ Driver job_driver(World& w, const JobCase& c, std::size_t line_list_limit, bool 
         st->fb->clear(0xF81F);
     }
     RenderQuality q = c.quality;
+    q.focus = {c.camera.center_x, c.camera.center_y}; // the production focus (quality_for)
     q.preserve_bitmap = c.stale;
     q.line_list_limit = line_list_limit;
     Layers layers = c.layers;
@@ -420,13 +421,14 @@ Membership validate_membership(const Trace& pubs, const Trace& terrain_only, Dri
         ++m.states;
         const bool changed = std::memcmp(now.data(), previous.data(), now.size() * 2) != 0;
         const std::uint32_t slices = d.slices();
+        // The state that draws the first terrain slice is not a preparation state.
+        if (slices != slices_seen)
+            first_slice_seen = true;
+        slices_seen = slices;
         if (emitted >= 1 && !first_slice_seen) {
             ++m.prep_states; // between publication 1 and the first terrain slice
             m.prep_unchanged += !changed;
         }
-        if (slices != slices_seen)
-            first_slice_seen = true;
-        slices_seen = slices;
         if (changed && !r.band_ready) {
             ++m.changed_states;
             const Pixels& p_i = emitted == 0 ? d.initial : pubs.frames[emitted - 1];
