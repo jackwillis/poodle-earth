@@ -16,7 +16,8 @@ code from later surface/pass/theme and fetch work.
 
 Portable code has no OS headers or clock reads. Time enters messages; update returns redraw,
 present-only, quit and replacement-wake effects. Repaint resends existing pixels and keeps active
-refinement. A click below drag slop changes no camera, stage, generation or render request; an
+refinement; on X11 during a held drag it resends the image from the last upload instead of
+converting the frame being refined. A click below drag slop changes no camera, stage, generation or render request; an
 active drag, camera/size/data/style change invalidates old screen work. The replay remains deterministic.
 
 Sources, cached unit vectors, shading indices and workspaces allocate at load; frame paths

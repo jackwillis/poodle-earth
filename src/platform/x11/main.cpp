@@ -388,10 +388,16 @@ class App {
             upload(0, fb_->height());
     }
     bool apply(const Msg& msg) {
-        // Repaint is a presentation request. Keep the cached frame and any in-flight job.
+        // Repaint is a presentation request. Keep the cached frame and any in-flight job. While a
+        // drag holds presentation, the frame being refined is not approved: show the packed image
+        // from the last upload again instead of converting the live frame over it.
         if (std::holds_alternative<Repaint>(msg)) {
-            if (!need_redraw_ && fb_)
-                upload(0, fb_->height());
+            if (!need_redraw_ && fb_) {
+                if (!presentation_held(model_))
+                    upload(0, fb_->height());
+                else if (frame_valid_)
+                    resend();
+            }
             return false;
         }
         const auto old_generation = model_.generation;
@@ -734,7 +740,8 @@ class App {
             draw_country_names();
         XSync(dpy_, False);
         t_.present_ms.push_back(ms_since(t));
-        if (opt_.verify_pixels) {
+        // The oracle compares with the frame last composed, which a held repaint no longer matches.
+        if (opt_.verify_pixels && !presentation_held(model_)) {
             pixels_ok_ &= verify_window();
         }
     }
