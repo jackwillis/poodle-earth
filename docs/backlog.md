@@ -56,6 +56,8 @@ Structured facts and readable linked articles are both eventual goals. Search, f
 
 ## Release themes
 
+> **Current-release override (2026-11-21):** [#212](https://github.com/jackwillis/poodle-earth/issues/212) supersedes the historical candidate v0.1.3/0.1.4 rows below: **v0.1.3 Unix distribution and matching-source CD**, then **v0.1.4 PoodleScripts**. The owner-approved v0.3 bounded-memory pack outcome is documented in the November 22 section of [draft #252](https://github.com/jackwillis/poodle-earth/pull/252); its live milestone reconciliation is still pending. Older row text is retained as dated planning history, **not active release scope**.
+
 These are the four **thematic** milestones (v0.1 through v0.4), established without due dates and restructured on 2026-11-10 (owner decision). Separate **patch-release** milestones v0.1.1 and v0.1.2 now capture incremental work; they do not replace the broader v0.2 outcome. v0.1.0 was published on 2026-11-13. The epics (#1–#6) span releases and carry no milestone. Parked experiments (#15, #16, #19, #21, #22) have no milestone.
 
 | Milestone | Outcome | Practical gate |
@@ -102,6 +104,8 @@ No due dates or fixed feature commitments have been set.
 - **A larger edition ships as an application plus a data folder**, laid out like a CD and published as a disk image first: external data packs on Classic Mac OS ([#48](https://github.com/jackwillis/poodle-earth/issues/48)), running from a read-only volume ([#49](https://github.com/jackwillis/poodle-earth/issues/49)), the full-edition data ([#50](https://github.com/jackwillis/poodle-earth/issues/50)) and the volume layout ([#51](https://github.com/jackwillis/poodle-earth/issues/51)).
 
 ## Release narratives and planning vocabulary (2026-11-17)
+
+> **Historical narrative snapshot:** v0.1.3 wording below predates the November 21 owner-approved [Unix-first release direction in #212](https://github.com/jackwillis/poodle-earth/issues/212). It is no longer a candidate for that version, and does not define a release gate.
 
 A release should first tell an **independently useful product story**, not merely enumerate internal subsystems. These short descriptions explain the intended experience; they are **not new acceptance criteria, milestone assignments, platform guarantees or release authorizations**. Check live GitHub issues and milestones for committed scope and state.
 
