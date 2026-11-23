@@ -83,8 +83,9 @@ across arms (identical R0, native0, fb0, live hashes and step counts), and with 
 - **L (live control) is sensitive:** R1 equals the live composed frame and differs from R0 in every state.
   Had L matched R0 the result would have been INCONCLUSIVE; that was a CHECK.
 - **Smallest counterexample:** one `refine_step()` after the job starts, with no publication yet. The
-  difference is the progress bar (1,384 px composed) plus the first live pixels; in the composed view it
-  is already enough for Expose to change the window. So the defect does not need a half-drawn globe.
+  composed difference is 1,384 px (raw 2,027 px); it includes the progress bar, whose share was not
+  isolated. One step is already enough for Expose to change the window, so the defect does not need a
+  half-drawn globe.
 - **`fb_` is unchanged by every repaint** (hash equal before and after).
 
 ### Hold, cancellation, validity
