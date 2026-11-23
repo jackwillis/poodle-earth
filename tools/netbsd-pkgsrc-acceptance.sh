@@ -10,7 +10,7 @@ set -u
 PATH=/usr/pkg/bin:/usr/pkg/sbin:/usr/X11R7/bin:/sbin:/usr/sbin:/bin:/usr/bin
 export PATH
 [ $# = 2 ] || { echo "usage: $0 DISTFILE OUTDIR" >&2; exit 2; }
-SRC=$(pwd); DIST=$1; O=$2; fail=0; mkdir -p "$O"
+SRC=$(pwd); DIST=$SRC/$1; O=$SRC/$2; fail=0; mkdir -p "$O"
 PKGSRC=${PKGSRC:-/usr/pkgsrc}; R=$PKGSRC/geography/poodle-earth; PK=$PKGSRC/packages/All
 MAKE=$(command -v bmake || echo make)
 chk() { if [ "$1" = 0 ]; then r=PASS; else r=FAIL; fail=1; fi; echo "$r $2" | tee -a "$O/summary.txt"; }
