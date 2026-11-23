@@ -36,6 +36,7 @@ jobs:
         env:
           GLOBE_RELEASE_STRICT: '1'
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           command -v xvfb-run
           tools/package-unix-archive.sh build-unix-archive
           cd build-unix-archive
