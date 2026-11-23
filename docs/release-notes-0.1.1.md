@@ -1,12 +1,8 @@
 # Poodle Earth v0.1.1 — release notes
 
-**Draft for Jack's review, November 19, 2026. Not a release announcement.**
-No final v0.1.1 candidate or artifacts were identified for this documentation
-pass. The changes below describe main through `289106c` and this documentation
-PR; reconcile them against the selected candidate before publishing.
-The [v0.1.0 public preview](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.0)
-remains the published download. Its original history is preserved in the
-[changelog](../CHANGELOG.md) and [v0.1.0 notes](release-notes-0.1.md).
+**Published November 19, 2026.** [Download v0.1.1](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.1).
+This release follows the [v0.1.0 public preview](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.0).
+See the [changelog](../CHANGELOG.md) for the concise release history.
 
 ## Changes since v0.1.0
 
@@ -28,8 +24,9 @@ remains the published download. Its original history is preserved in the
 - The release packager can produce an emulator-friendly HFS/ISO CD image in
   addition to StuffIt. See the exact acceptance limits below.
 - The accepted public [website](https://jackwillis.github.io/poodle-earth/) and genuine
-  bare-OS-9 screenshots introduce the app. This docs pass refreshes the README,
-  [user guide](user-guide.md), bundled ReadMe and contributor entry points.
+  bare-OS-9 screenshots introduce the app. The README,
+  [user guide](user-guide.md), bundled ReadMe and contributor entry points
+  were refreshed.
   Screenshot build `110a197` is identified in the
   [provenance record](images/os9/README.md); screenshots are not final-candidate
   acceptance evidence.

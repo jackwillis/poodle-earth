@@ -16,7 +16,7 @@ for f in PoodleEarth-Finder.bin build-info.txt; do
 done
 rev=$(git rev-parse --short HEAD)
 revision=$(git rev-parse HEAD)
-version=$(sed -n 's/^project(globe VERSION \([0-9][0-9.]*\).*/\1/p' CMakeLists.txt)
+version=$(sed -n 's/^project(poodle-earth VERSION \([0-9][0-9.]*\).*/\1/p' CMakeLists.txt)
 [ -n "$version" ] || { echo 'release: no version in CMakeLists.txt' >&2; exit 2; }
 name="PoodleEarth-$version-$rev"
 # The application must come from this exact, clean revision; the source archive is that revision.

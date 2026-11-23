@@ -3,7 +3,7 @@
 // X11 front end: one window showing the globe. Sleeps until input or a one-shot wake, turns
 // X events into Msgs, runs update(), and renders only when update() asks for a redraw.
 //
-//   globe-x11 [--atlas FILE] [--elevation FILE] [--size WxH] [--script TRACE [--exit-when-done]]
+//   poodle-earth [--atlas FILE] [--elevation FILE] [--size WxH] [--script TRACE [--exit-when-done]]
 //             [--idle-seconds N] [--verify-pixels] [--stats] [--no-zoom-preview]
 //             [--finish-refinement]
 //
@@ -117,8 +117,10 @@ class App {
         if (places_)
             place_scene_ = PlaceScene::create(*places_);
         countries_ = Countries::parse(kEmbeddedCountriesData, kEmbeddedCountriesSize);
-        if (countries_)
+        if (countries_) {
             country_scene_ = CountryScene::create(*countries_);
+            country_labels_ = countries_->label_candidates();
+        }
         overlays_.attach(countries_ ? &*countries_ : nullptr,
                          country_scene_ ? &*country_scene_ : nullptr, places_ ? &*places_ : nullptr,
                          place_scene_ ? &*place_scene_ : nullptr);
@@ -135,6 +137,10 @@ class App {
         if (image_ != nullptr) {
             XDestroyImage(image_);
         }
+        if (label_gc_)
+            XFreeGC(dpy_, label_gc_);
+        if (label_font_)
+            XFreeFont(dpy_, label_font_);
         if (gc_ != nullptr) {
             XFreeGC(dpy_, gc_);
         }
@@ -147,7 +153,7 @@ class App {
         const int screen = DefaultScreen(dpy_);
         Visual* visual = DefaultVisual(dpy_, screen);
         if (visual->c_class != TrueColor && visual->c_class != DirectColor) {
-            std::fprintf(stderr, "globe-x11: default visual is not TrueColor/DirectColor\n");
+            std::fprintf(stderr, "poodle-earth: default visual is not TrueColor/DirectColor\n");
             return false;
         }
         depth_ = DefaultDepth(dpy_, screen);
@@ -163,12 +169,23 @@ class App {
         wm_delete_ = XInternAtom(dpy_, "WM_DELETE_WINDOW", False);
         XSetWMProtocols(dpy_, win_, &wm_delete_, 1);
         gc_ = XCreateGC(dpy_, win_, 0, nullptr);
+        if (!opt_.verify_pixels && !country_labels_.empty()) {
+            label_font_ =
+                XLoadQueryFont(dpy_, "-*-helvetica-medium-r-normal--12-*-*-*-*-*-iso8859-1");
+            if (!label_font_)
+                label_font_ = XLoadQueryFont(dpy_, "fixed");
+            if (label_font_) {
+                XGCValues values{};
+                values.font = label_font_->fid;
+                label_gc_ = XCreateGC(dpy_, win_, GCFont, &values);
+            }
+        }
         if (!make_buffers(opt_.width, opt_.height)) {
             return false;
         }
         toolbar_ = XCreateSimpleWindow(dpy_, RootWindow(dpy_, screen), 0, opt_.height + 20,
-                                       kToolbarWidth, kToolbarHeight, 1, BlackPixel(dpy_, screen),
-                                       WhitePixel(dpy_, screen));
+                                       kToolbarWidth, kToolbarHeight + 28, 1,
+                                       BlackPixel(dpy_, screen), WhitePixel(dpy_, screen));
         XStoreName(dpy_, toolbar_, "Poodle Earth tools");
         XSetTransientForHint(dpy_, toolbar_, win_);
         const Atom kind = XInternAtom(dpy_, "_NET_WM_WINDOW_TYPE_UTILITY", False);
@@ -242,7 +259,7 @@ class App {
         const Summary r = summarize(t_.render_ms.data(), t_.render_ms.size());
         const Summary p = summarize(t_.pack_ms.data(), t_.pack_ms.size());
         const Summary x = summarize(t_.present_ms.data(), t_.present_ms.size());
-        std::printf("{\n  \"tool\": \"globe-x11\",\n  \"viewport\": \"%dx%d\",\n",
+        std::printf("{\n  \"tool\": \"poodle-earth\",\n  \"viewport\": \"%dx%d\",\n",
                     model_.camera.width, model_.camera.height);
         std::printf("  \"visual_depth\": %d,\n  \"bits_per_pixel\": %d,\n", depth_,
                     format_.bits_per_pixel);
@@ -314,9 +331,10 @@ class App {
                                     static_cast<std::uint32_t>(img->blue_mask),
                                     img->byte_order == MSBFirst};
         if (!pixel_format_supported(format)) {
-            std::fprintf(stderr,
-                         "globe-x11: unsupported pixel layout (%d bpp, masks %06lx/%06lx/%06lx)\n",
-                         img->bits_per_pixel, img->red_mask, img->green_mask, img->blue_mask);
+            std::fprintf(
+                stderr,
+                "poodle-earth: unsupported pixel layout (%d bpp, masks %06lx/%06lx/%06lx)\n",
+                img->bits_per_pixel, img->red_mask, img->green_mask, img->blue_mask);
             XDestroyImage(img);
             return false;
         }
@@ -334,7 +352,7 @@ class App {
     bool load_script() {
         std::vector<std::uint8_t> bytes;
         if (!read_file(opt_.script_path, bytes)) {
-            std::fprintf(stderr, "globe-x11: cannot read %s\n", opt_.script_path);
+            std::fprintf(stderr, "poodle-earth: cannot read %s\n", opt_.script_path);
             return false;
         }
         const std::string text(bytes.begin(), bytes.end());
@@ -487,7 +505,7 @@ class App {
         FD_SET(fd, &set);
         const int ready = select(fd + 1, &set, nullptr, nullptr, deadline == 0 ? nullptr : &tv);
         if (ready < 0 && errno != EINTR) {
-            std::perror("globe-x11: select");
+            std::perror("poodle-earth: select");
             return false;
         }
         const std::uint64_t after = monotonic_ns() / 1000000ULL;
@@ -558,7 +576,7 @@ class App {
         XImage* actual = XGetImage(dpy_, win_, 0, 0, static_cast<unsigned>(fb.width()),
                                    static_cast<unsigned>(fb.height()), AllPlanes, ZPixmap);
         if (actual == nullptr) {
-            std::fprintf(stderr, "globe-x11: XGetImage failed\n");
+            std::fprintf(stderr, "poodle-earth: XGetImage failed\n");
             return false;
         }
         const std::size_t stride = pixel_row_bytes(format_, fb.width());
@@ -582,8 +600,8 @@ class App {
                 const unsigned long got = XGetPixel(actual, x, y) & mask;
                 if (got != want) {
                     std::fprintf(stderr,
-                                 "globe-x11: pixel mismatch at %d,%d: got %lx expected %lx\n", x, y,
-                                 got, want);
+                                 "poodle-earth: pixel mismatch at %d,%d: got %lx expected %lx\n", x,
+                                 y, got, want);
                     ok = false;
                     break;
                 }
@@ -670,6 +688,41 @@ class App {
         upload(0, fb.height());
     }
 
+    void draw_country_names() {
+        if (!labels_shown_)
+            return;
+        std::array<PlacedLabel, kMaxPlacedLabels> placed;
+        const auto count = place_labels(
+            model_.camera, country_labels_,
+            [](void* context, std::string_view text, LabelRole) -> std::optional<LabelMetrics> {
+                int direction, ascent, descent;
+                XCharStruct bounds{};
+                XTextExtents(static_cast<XFontStruct*>(context), text.data(),
+                             static_cast<int>(text.size()), &direction, &ascent, &descent, &bounds);
+                return LabelMetrics{bounds.lbearing, bounds.rbearing + 1, bounds.ascent,
+                                    bounds.descent + 1};
+            },
+            label_font_, placed);
+        const int screen = DefaultScreen(dpy_);
+        for (std::size_t i = 0; i < count; ++i) {
+            const auto& label = placed[i];
+            const auto text = country_labels_[label.candidate].text;
+            const auto length = static_cast<int>(text.size());
+            XSetForeground(dpy_, label_gc_, WhitePixel(dpy_, screen));
+            // XDrawString consumes the explicit length; string_view need not be NUL-terminated.
+            // NOLINTBEGIN(bugprone-suspicious-stringview-data-usage)
+            XDrawString(dpy_, win_, label_gc_, label.baseline_x + 1, label.baseline_y + 1,
+                        text.data(), length);
+            // NOLINTEND(bugprone-suspicious-stringview-data-usage)
+            XSetForeground(dpy_, label_gc_, BlackPixel(dpy_, screen));
+            // XDrawString consumes the explicit length; string_view need not be NUL-terminated.
+            // NOLINTBEGIN(bugprone-suspicious-stringview-data-usage)
+            XDrawString(dpy_, win_, label_gc_, label.baseline_x, label.baseline_y, text.data(),
+                        length);
+            // NOLINTEND(bugprone-suspicious-stringview-data-usage)
+        }
+    }
+
     // Shows the already packed image again, without rendering or converting.
     void resend() {
         if (!fb_ || image_ == nullptr)
@@ -677,6 +730,8 @@ class App {
         const std::uint64_t t = monotonic_ns();
         XPutImage(dpy_, win_, gc_, image_, 0, 0, 0, 0, static_cast<unsigned>(fb_->width()),
                   static_cast<unsigned>(fb_->height()));
+        if (!presentation_held(model_) && frame_settled(model_, runner_.active()))
+            draw_country_names();
         XSync(dpy_, False);
         t_.present_ms.push_back(ms_since(t));
         if (opt_.verify_pixels) {
@@ -693,6 +748,13 @@ class App {
         // Overlays and the progress bar go on a copy (or the bar on the frame for this upload), so
         // the rendered frame stays exactly as it was and clearing an overlay needs no re-render.
         const bool settled = frame_settled(model_, runner_.active());
+        const bool show_labels =
+            settled && !presentation_held(model_) && country_names_ && label_gc_;
+        if (show_labels || labels_shown_) {
+            first_row = 0;
+            end_row = fb.height();
+        }
+        labels_shown_ = show_labels;
         const double progress = bar_progress(model_, runner_.job());
         if (progress >= 0.0 || bar_shown_) { // a bar to draw, or one to wipe: cover its rows
             first_row = std::min(first_row, fb.height() - kProgressBarRows);
@@ -711,6 +773,7 @@ class App {
         t = monotonic_ns();
         XPutImage(dpy_, win_, gc_, image_, 0, first_row, 0, first_row,
                   static_cast<unsigned>(fb.width()), static_cast<unsigned>(end_row - first_row));
+        draw_country_names();
         XSync(dpy_, False);
         t_.present_ms.push_back(ms_since(t));
         if (opt_.verify_pixels) {
@@ -738,7 +801,7 @@ class App {
         const int screen = DefaultScreen(dpy_);
         const auto white = WhitePixel(dpy_, screen), black = BlackPixel(dpy_, screen);
         XSetForeground(dpy_, gc_, white);
-        XFillRectangle(dpy_, toolbar_, gc_, 0, 0, kToolbarWidth, kToolbarHeight);
+        XFillRectangle(dpy_, toolbar_, gc_, 0, 0, kToolbarWidth, kToolbarHeight + 28);
         for (std::size_t i = 0; i < kCommandCount; ++i) {
             const auto state = toolbar_cache_[i];
             if (!state.visible)
@@ -752,6 +815,13 @@ class App {
             XSetForeground(dpy_, gc_, state.checked ? white : black);
             XDrawString(dpy_, toolbar_, gc_, r.x + 6, r.y + 18, labels[i],
                         static_cast<int>(std::strlen(labels[i])));
+        }
+        if (label_gc_) {
+            XSetForeground(dpy_, gc_, black);
+            XDrawRectangle(dpy_, toolbar_, gc_, 8, kToolbarHeight, 122, 22);
+            const char* label = country_names_ ? "[x] Country Names" : "[ ] Country Names";
+            XDrawString(dpy_, toolbar_, gc_, 13, kToolbarHeight + 15, label,
+                        static_cast<int>(std::strlen(label)));
         }
     }
     bool handle(XEvent& ev) {
@@ -776,6 +846,14 @@ class App {
             if (ev.type == KeyPress)
                 return on_key(XLookupKeysym(&ev.xkey, 0), now);
             if (ev.type == ButtonPress && ev.xbutton.button == Button1) {
+                if (label_gc_ && ev.xbutton.x >= 8 && ev.xbutton.x <= 130 &&
+                    ev.xbutton.y >= kToolbarHeight && ev.xbutton.y <= kToolbarHeight + 22) {
+                    country_names_ = !country_names_;
+                    if (frame_valid_ && fb_ && !presentation_held(model_))
+                        upload(0, fb_->height());
+                    draw_toolbar();
+                    return false;
+                }
                 const auto hit = toolbar_hit({double(ev.xbutton.x), double(ev.xbutton.y)});
                 if (hit) {
                     const auto state = toolbar_state(model_)[static_cast<std::size_t>(*hit)];
@@ -996,6 +1074,8 @@ class App {
     std::optional<PlaceScene> place_scene_;
     std::optional<Countries> countries_;
     std::optional<CountryScene> country_scene_;
+    std::vector<LabelCandidate> country_labels_;
+    bool country_names_ = true;
     Overlays overlays_;
     std::size_t info_cards_ = 0;
     Window win_ = 0, toolbar_ = 0;
@@ -1004,7 +1084,9 @@ class App {
     ScreenPoint pointer_{-1e20, -1e20};
     ToolbarState toolbar_cache_{};
     std::size_t toolbar_commands_ = 0, cursor_changes_ = 0;
-    GC gc_ = nullptr;
+    GC gc_ = nullptr, label_gc_ = nullptr;
+    XFontStruct* label_font_ = nullptr;
+    bool labels_shown_ = false;
     Visual* visual_ = nullptr;
     int depth_ = 0;
     Atom wm_delete_ = 0;
@@ -1077,11 +1159,11 @@ int main(int argc, char** argv) {
         } else if (a == "--stats") {
             opt.stats = true;
         } else {
-            std::fprintf(
-                stderr,
-                "usage: globe-x11 [--atlas FILE] [--elevation FILE] [--size WxH] [--script TRACE "
-                "[--exit-when-done]] [--idle-seconds N] [--verify-pixels] [--stats] "
-                "[--no-zoom-preview] [--finish-refinement]\n");
+            std::fprintf(stderr,
+                         "usage: poodle-earth [--atlas FILE] [--elevation FILE] [--size WxH] "
+                         "[--script TRACE "
+                         "[--exit-when-done]] [--idle-seconds N] [--verify-pixels] [--stats] "
+                         "[--no-zoom-preview] [--finish-refinement]\n");
             return 2;
         }
     }
@@ -1096,7 +1178,7 @@ int main(int argc, char** argv) {
     std::size_t atlas_size = kEmbeddedAtlasSize;
     if (opt.atlas_path != nullptr) {
         if (!read_file(opt.atlas_path, atlas_file)) {
-            std::fprintf(stderr, "globe-x11: cannot read %s\n", opt.atlas_path);
+            std::fprintf(stderr, "poodle-earth: cannot read %s\n", opt.atlas_path);
             return 2;
         }
         atlas_data = atlas_file.data();
@@ -1105,33 +1187,34 @@ int main(int argc, char** argv) {
     AtlasError err = AtlasError::Ok;
     const auto atlas = Atlas::parse(atlas_data, atlas_size, &err);
     if (!atlas) {
-        std::fprintf(stderr, "globe-x11: atlas: %s\n", atlas_error_name(err));
+        std::fprintf(stderr, "poodle-earth: atlas: %s\n", atlas_error_name(err));
         return 2;
     }
 
     const auto scene = Scene::create(*atlas);
     if (!scene) {
-        std::fprintf(stderr, "globe-x11: out of memory building the scene\n");
+        std::fprintf(stderr, "poodle-earth: out of memory building the scene\n");
         return 2;
     }
 
     ElevationPacks packs;
     if (!packs.initialize(kEmbeddedElevationData, kEmbeddedElevationSize))
-        std::fprintf(stderr, "globe-x11: %s; showing outlines\n", packs.error());
+        std::fprintf(stderr, "poodle-earth: %s; showing outlines\n", packs.error());
     // Explicit imports retain their original capacity/precedence. With none, ship a finer
     // built-in level; an allocation failure retains the validated coarse fallback.
     if (opt.elevation_count == 0 &&
         !packs.add_embedded(kEmbeddedFineElevationData, kEmbeddedFineElevationSize))
-        std::fprintf(stderr, "globe-x11: optional half-degree terrain unavailable: %s\n",
+        std::fprintf(stderr, "poodle-earth: optional half-degree terrain unavailable: %s\n",
                      packs.error());
     for (unsigned i = 0; i < opt.elevation_count; ++i)
         if (!packs.import_file(opt.elevation_paths[i])) {
-            std::fprintf(stderr, "globe-x11: %s\n", packs.error());
+            std::fprintf(stderr, "poodle-earth: %s\n", packs.error());
             return 2;
         }
     Display* dpy = XOpenDisplay(nullptr);
     if (dpy == nullptr) {
-        std::fprintf(stderr, "globe-x11: cannot open display (is DISPLAY set and authorized?)\n");
+        std::fprintf(stderr,
+                     "poodle-earth: cannot open display (is DISPLAY set and authorized?)\n");
         return 1;
     }
     int rc = 0;
