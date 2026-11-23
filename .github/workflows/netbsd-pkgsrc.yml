@@ -1,7 +1,7 @@
 name: NetBSD pkgsrc
 
 # Package acceptance for the pkgsrc recipe on NetBSD 11.1/amd64 (a VM on a hosted runner).
-Evidence tier: package correctness plus a headless pixel-readback oracle.
+# Evidence tier: package correctness plus a headless pixel-readback oracle.
 # NOT covered: any real display, timing, NetBSD/macppc (no CI for it; see packaging/pkgsrc/README.md).
 on:
   pull_request:
