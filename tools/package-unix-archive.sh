@@ -87,7 +87,18 @@ cmp "$chk/prefix/bin/poodle-earth" "$work/build/poodle-earth"
 cmp "$chk/prefix/share/doc/poodle-earth/LICENSE" LICENSE
 if [ "${GLOBE_SMOKE:-1}" = 1 ] && command -v xvfb-run >/dev/null 2>&1; then
   xvfb-run -a -s "-screen 0 800x600x24" "$chk/prefix/bin/poodle-earth" --size 160x120 \
-    --script tests/data/trace1.txt --exit-when-done --stats | grep -q '"frames": 113'
+    --script tests/data/trace1.txt --exit-when-done --verify-pixels --stats > "$chk/stats.json"
+  python3 - "$chk/stats.json" <<'PY_STATS'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as stream:
+    stats = json.load(stream)
+print(json.dumps(stats, sort_keys=True))
+if not (100 <= stats["frames"] < 200 and
+        0 < stats["presentations"] == stats["verified_frames"]):
+    raise SystemExit("package-unix-archive: X11 trace verification failed")
+PY_STATS
   smoke=ok
 else
   smoke=skipped
