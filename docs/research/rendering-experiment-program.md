@@ -66,6 +66,11 @@ Every executed entry records its **prediction before execution**: the metric, th
 | **EXP-08 shared presentation** | #114 | Host-only prototype with synthetic fixtures; the single navigation journey is defined in the [PR #110](https://github.com/jackwillis/poodle-earth/pull/110) contract |
 | **EXP-09 hybrid disc** | [PR #111](https://github.com/jackwillis/poodle-earth/pull/111), #72 | Small HFS/ISO image with an identical pack checksum; resource-fork integrity needs a genuine Mac |
 
+| **X0 — terrain partition invariance** | [Draft PR #257](https://github.com/jackwillis/poodle-earth/pull/257) | Host-only, test-only; reordered bands and independent output ownership passed the finite matrix. Not threaded, not merged, not a platform claim. |
+| **X1a — cooperative publication lifecycle** | [Draft PR #258](https://github.com/jackwillis/poodle-earth/pull/258) | Recorder over the actual lifecycle; 19 fresh / 20 preserved logical publications in tested cases. Use the centre-focus erratum at `0fdb160`. Not merged. |
+| **X1b — pass transitions** | [Draft PR #259](https://github.com/jackwillis/poodle-earth/pull/259) | Host-only transition model reproduced tested published frames with band reordering; no alternative production job, threads or hardware. Not merged. |
+| **X-AF1 — approved-frame repaint** | [Issue #256](https://github.com/jackwillis/poodle-earth/issues/256) (architecture consultation; experiment protocol held by the investigating agent) | **Proposed, not executed as of this update.** Xvfb production Expose vs stored-XImage resend vs live-upload control, with window readback. Repaint ownership, not another renderer backend. |
+
 ### Parked hypotheses
 
 | ID | Hypothesis | Preconditions to unpark | Stop condition |
