@@ -14,11 +14,11 @@ import re
 
 def cmake_version(path: Path) -> str:
     match = re.search(
-        r"project\(globe\s+VERSION\s+([0-9]+\.[0-9]+\.[0-9]+)\b",
+        r"project\(poodle-earth\s+VERSION\s+([0-9]+\.[0-9]+\.[0-9]+)\b",
         path.read_text(encoding="utf-8"),
     )
     if not match:
-        raise ValueError("missing project(globe VERSION ...) in CMakeLists.txt")
+        raise ValueError("missing project(poodle-earth VERSION ...) in CMakeLists.txt")
     return match.group(1)
 
 

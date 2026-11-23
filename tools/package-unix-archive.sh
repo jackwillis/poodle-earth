@@ -13,7 +13,7 @@ out=${1:-build-unix-archive}
 [ "$(uname -s)" = Linux ] && [ "$(uname -m)" = x86_64 ] || { echo "package-unix-archive: Linux x86_64 host required" >&2; exit 2; }
 revision=$(git rev-parse HEAD)
 rev=$(git rev-parse --short HEAD)
-version=$(sed -n 's/^project(globe VERSION \([0-9][0-9.]*\).*/\1/p' CMakeLists.txt)
+version=$(sed -n 's/^project(poodle-earth VERSION \([0-9][0-9.]*\).*/\1/p' CMakeLists.txt)
 [ -n "$version" ] || { echo 'package-unix-archive: no version in CMakeLists.txt' >&2; exit 2; }
 dirty=0
 if ! git diff --quiet || ! git diff --cached --quiet; then dirty=1; fi
@@ -34,7 +34,7 @@ git archive --format=tar --prefix="poodle-earth-$version-$rev/" HEAD | gzip -n >
 tar -xzf "$out/poodle-earth-$version-$rev-source.tar.gz" -C "$work"
 src=$work/poodle-earth-$version-$rev
 cmake -S "$src" -B "$work/build" -G Ninja -DCMAKE_BUILD_TYPE=Release -DGLOBE_BUILD_TESTS=OFF >/dev/null
-cmake --build "$work/build" --target globe-x11 >/dev/null
+cmake --build "$work/build" --target poodle-earth-x11 >/dev/null
 pkg=$work/pkg/$name
 mkdir -p "$pkg"
 DESTDIR=$pkg cmake --install "$work/build" --prefix / >/dev/null
@@ -64,7 +64,7 @@ Source: https://github.com/jackwillis/poodle-earth (the tree of that commit), an
 the file poodle-earth-$version-$rev-source.tar.gz published beside this archive,
 which is that tree. The binary here was built from that tree with:
   cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DGLOBE_BUILD_TESTS=OFF
-  cmake --build build --target globe-x11
+  cmake --build build --target poodle-earth-x11
   DESTDIR=stage cmake --install build --prefix /
 This program is GPL-3.0-or-later; see share/doc/poodle-earth/LICENSE.
 SRC
