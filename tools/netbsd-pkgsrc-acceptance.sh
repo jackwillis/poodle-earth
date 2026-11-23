@@ -28,6 +28,8 @@ cp "$DIST" "$PKGSRC/distfiles/$DF"
 cd "$R" || exit 1
 $MAKE makesum > "$O/01-makesum.log" 2>&1; chk $? "makesum ($DF)" "$O/01-makesum.log"
 pkglint -Wall > "$O/02-pkglint.log" 2>&1; chk $? "pkglint -Wall (exit status; warnings are in the log)"
+# Install dependencies first so the residue check sees only what poodle-earth itself leaves behind.
+$MAKE install-dependencies > "$O/02b-dependencies.log" 2>&1; chk $? "install-dependencies" "$O/02b-dependencies.log"
 find /usr/pkg -type f | sort > "$O/before.txt"
 ( time $MAKE package ) > "$O/03-package-build.log" 2>&1; chk $? "make package" "$O/03-package-build.log"
 P=$(ls "$PK"/poodle-earth-*.tgz 2>/dev/null | head -1)
