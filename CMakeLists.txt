@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (c) 2026 Jack Willis
 cmake_minimum_required(VERSION 3.20)
-project(poodle-earth VERSION 0.1.1 LANGUAGES CXX)
+project(poodle-earth VERSION 0.1.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -259,6 +259,12 @@ if(GLOBE_BUILD_TESTS)
       add_test(NAME x11_repaint COMMAND ${XVFB_RUN} -a -s "-screen 0 800x600x24"
                $<TARGET_FILE:test_x11_toolbar> $<TARGET_FILE:poodle-earth-x11> repaint)
       set_tests_properties(x11_repaint PROPERTIES TIMEOUT 20)
+      add_executable(test_x11_country_names tests/test_x11_country_names.cpp)
+      target_include_directories(test_x11_country_names PRIVATE ${X11_INCLUDE_DIR})
+      target_link_libraries(test_x11_country_names PRIVATE globe_core ${X11_LIBRARIES})
+      add_test(NAME x11_country_names COMMAND ${XVFB_RUN} -a -s "-screen 0 800x600x24"
+               $<TARGET_FILE:test_x11_country_names> $<TARGET_FILE:poodle-earth-x11>)
+      set_tests_properties(x11_country_names PROPERTIES TIMEOUT 20)
       # A click and window exposes resend pixels; they never render or restart refinement.
       add_test(NAME x11_click
                COMMAND ${XVFB_RUN} -a -s "-screen 0 800x600x24"
