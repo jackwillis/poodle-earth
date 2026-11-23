@@ -14,9 +14,8 @@ COMMENT=	Small X11 globe and atlas viewer with built-in data
 # (CC BY 4.0); see DATA-CREDITS.txt, installed with the package.
 LICENSE=	gnu-gpl-v3 AND cc0-1.0-universal AND cc-by-v4.0 AND public-domain
 
-USE_LANGUAGES=	c++
+USE_LANGUAGES=		c++
 USE_CXX_FEATURES=	c++20
-USE_CMAKE=	yes
 
 # Python 3 only runs at build time, to embed the data tables into the executable.
 PYTHON_FOR_BUILD_ONLY=	tool
@@ -26,6 +25,7 @@ CMAKE_CONFIGURE_ARGS+=	-DGLOBE_BUILD_TESTS=OFF
 # The build installs bin/poodle-earth and share/doc/poodle-earth/ (CMake GNUInstallDirs);
 # the executable carries its data, so no data files are installed.
 
+.include "../../devel/cmake/build.mk"
 .include "../../lang/python/tool.mk"
 .include "../../x11/libX11/buildlink3.mk"
 .include "../../mk/bsd.pkg.mk"
