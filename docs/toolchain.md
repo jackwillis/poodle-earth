@@ -1,5 +1,27 @@
 # Toolchains and validation — 2026-11-02
 
+## Canonical build-host and release workflow
+
+**Owner policy (2026-11-21): [AGENTS.md](../AGENTS.md#5-safety-and-invariants-kept-from-claudemd-and-docshandoffmd) is authoritative.**
+All compilation, including compiler/tool builds, happens on a **modern Linux host**:
+prefer current Ubuntu or Fedora, on any Linux CPU architecture supported by the
+toolchain. Ubuntu amd64 is today's practical CI default, not a permanent rule.
+Other operating systems are **cross-targets**. NetBSD/amd64 VMs,
+NetBSD/macppc on the G4, Classic Mac OS and other target environments are for
+native package/runtime/GUI acceptance, **not native compilation**, even when a
+package manager normally builds from source. For Linux targets, native host builds and tests on Linux are allowed; these
+are not cross-compilation. A pinned Debian 12 build environment may be used to
+meet the glibc 2.34+ target.
+
+**Reproducible GitHub Actions on modern Linux is the canonical release-build path.**
+Pin source, toolchains, target sysroots, flags, dependencies and output hashes;
+verify a clean cold-cache build, and use caches only to save time. Publish only
+the exact approved CI artifact after native acceptance. Local experimental
+cross-builds, even ones accepted on hardware, are evidence pending CI integration.
+The existing CI does not yet produce every planned Unix release artifact;
+do not claim that it does. See [the release checklist](release-checklist.md)
+and the proposed [PE-CI-01 strategy](https://github.com/jackwillis/poodle-earth/pull/250).
+
 | Target | Compiler / method | Current evidence |
 | --- | --- | --- |
 | Host GCC | Fedora GCC 16.2.1, C++20, ASan/UBSan, no exceptions/RTTI | 35/35 tests, including both Xvfb depths and quiet idle |
