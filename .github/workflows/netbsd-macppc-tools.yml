@@ -34,6 +34,8 @@ jobs:
             build-essential zlib1g-dev curl ca-certificates
       # No cache action is used anywhere in this job: every run starts from an empty WORK.
       - name: Fetch, verify and build tools
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: tools/netbsd-macppc-tools.sh "$RUNNER_TEMP/macppc-work"
       - name: Job summary
         if: always()

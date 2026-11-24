@@ -88,7 +88,8 @@ gib() { awk -v b="$1" 'BEGIN{printf "%.2f GiB", b/1073741824}'; }
   echo "## NetBSD 11.1/macppc build.sh tools on Linux"
   echo
   echo "- result: $([ "$status" -eq 0 ] && echo PASS || echo "FAIL (build.sh exit $status)")"
-  echo "- revision: ${GITHUB_SHA:-$(git rev-parse HEAD)}"
+  echo "- revision tested: $(git rev-parse HEAD) (GITHUB_SHA ${GITHUB_SHA:-unset})"
+  echo "- pull request head: ${PR_HEAD_SHA:-n/a}"
   echo "- cache: none (cold start; WORK was empty)"
   echo "- source sets (SHA-512 verified against packaging/netbsd-macppc/netbsd-11.1-source.sha512): $sets"
   echo "- mirror: $mirror"
