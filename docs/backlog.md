@@ -60,7 +60,7 @@ Structured facts and readable linked articles are both eventual goals. Search, f
 
 ## Release themes
 
-> **Current-release override (2026-11-21):** [#212](https://github.com/jackwillis/poodle-earth/issues/212) supersedes the historical candidate v0.1.3/0.1.4 rows below: **v0.1.3 Unix distribution and matching-source CD**, then **v0.1.4 A Testable Earth**. The owner-approved v0.3 bounded-memory pack outcome is documented in the November 22 section of [draft #252](https://github.com/jackwillis/poodle-earth/pull/252); its live milestone reconciliation is still pending. Older row text is retained as dated planning history, **not active release scope**.
+> **Current-release override (updated 2026-11-23):** [#212](https://github.com/jackwillis/poodle-earth/issues/212) supersedes the historical candidate v0.1.3/0.1.4 rows below: **v0.1.3 Unix distribution and matching-source CD**, then **v0.1.4 A Testable Earth**. The owner-approved v0.3 bounded-memory pack outcome is documented in the November 22 section of [draft #252](https://github.com/jackwillis/poodle-earth/pull/252); its live milestone reconciliation is still pending. Older row text is retained as dated planning history, **not active release scope**.
 
 These are the four **thematic** milestones (v0.1 through v0.4), established without due dates and restructured on 2026-11-10 (owner decision). Separate **patch-release** milestones v0.1.1 and v0.1.2 now capture incremental work; they do not replace the broader v0.2 outcome. v0.1.0 was published on 2026-11-13. The epics (#1–#6) span releases and carry no milestone. Parked experiments (#15, #16, #19, #21, #22) have no milestone.
 
