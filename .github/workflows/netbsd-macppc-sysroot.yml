@@ -1,0 +1,51 @@
+name: NetBSD macppc sysroot
+
+# Second Linux-hosted NetBSD 11.1/macppc slice: assemble the base + X11 sysroot from pinned
+# release sets, cold, and check headers, startup objects and X11 libraries. No application build,
+# package assembly, G4 access or publication. Manual or on a PR that changes the inputs; nothing
+# here is a required status or a scheduled job. Independent of the build.sh tools workflow.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/netbsd-macppc-sysroot.yml'
+      - 'packaging/netbsd-macppc/netbsd-11.1-macppc-sets.sha512'
+      - 'packaging/netbsd-macppc/PROVENANCE.md'
+      - 'tools/netbsd-macppc-sysroot.sh'
+      - 'tools/check-netbsd-macppc-sysroot.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sysroot:
+    name: Base + X11 sysroot (NetBSD 11.1, macppc) on Linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      # binutils (readelf), curl and tar are in the runner image; no cache action is used.
+      - name: Assemble and check the sysroot
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: tools/netbsd-macppc-sysroot.sh "$RUNNER_TEMP/macppc-sysroot-work"
+      - name: Job summary
+        if: always()
+        run: |
+          [ -f "$RUNNER_TEMP/macppc-sysroot-work/summary.md" ] && cat "$RUNNER_TEMP/macppc-sysroot-work/summary.md" >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: netbsd-11.1-macppc-sysroot-logs
+          path: |
+            ${{ runner.temp }}/macppc-sysroot-work/logs/
+            ${{ runner.temp }}/macppc-sysroot-work/summary.md
+          if-no-files-found: warn
+          retention-days: 30
