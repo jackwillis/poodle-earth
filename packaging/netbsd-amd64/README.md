@@ -64,5 +64,4 @@ is not claimed across different runner images or libarchive/zlib versions. The e
 ## Not shown
 
 A real display, timing or performance, a pkgsrc `make package` amd64 package from this recipe path (see
-#216), any other NetBSD release, release version alignment (CMake says 0.1.2, the package says 0.1.3, as
-for macppc), and anything on the G4.
+#216), any other NetBSD release, and anything on the G4.

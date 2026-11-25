@@ -37,5 +37,13 @@ missing=$(git ls-files 'include/*' 'src/*' 'tests/*' 'tools/*' 'CMakeLists.txt' 
     xargs grep -L 'SPDX-License-Identifier: GPL-3.0-or-later')
 [ -z "$missing" ] || { echo "$missing"; bad "missing 'SPDX-License-Identifier: GPL-3.0-or-later'"; }
 
+# 4. One release version: CMake is the source; the C++ constant (About window, --version) and the
+#    Classic ReadMe title line must equal it. The packaging scripts read CMake themselves.
+cmake_version=$(sed -n 's/^project(poodle-earth VERSION \([0-9][0-9.]*\).*/\1/p' CMakeLists.txt)
+header_version=$(sed -n 's/.*kVersion = "\([0-9][0-9.]*\)".*/\1/p' include/globe/version.hpp)
+readme_version=$(sed -n 's/^Poodle Earth v\([0-9][0-9.]*\)$/\1/p' os9/ReadMe.txt)
+[ -n "$cmake_version" ] && [ "$header_version" = "$cmake_version" ] && [ "$readme_version" = "$cmake_version" ] || \
+	bad "version mismatch: CMakeLists.txt '$cmake_version', include/globe/version.hpp '$header_version', os9/ReadMe.txt '$readme_version'"
+
 [ "$fail" = 0 ] && echo "policy: ok"
 exit $fail
