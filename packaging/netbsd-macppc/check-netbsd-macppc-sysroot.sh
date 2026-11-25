@@ -4,7 +4,7 @@
 # Checks that an assembled NetBSD 11.1/macppc sysroot has what a later dynamic-X11 cross build
 # needs: target headers, startup objects, C/C++ runtime libraries and the X11 libraries, all
 # big-endian ELF32 PowerPC marked NetBSD 11.1. Needs readelf. Prints ok/FAIL lines; exits 1 on any FAIL.
-#   tools/check-netbsd-macppc-sysroot.sh SYSROOT
+#   packaging/netbsd-macppc/check-netbsd-macppc-sysroot.sh SYSROOT
 set -uo pipefail
 root=$(cd "${1:?usage: check-netbsd-macppc-sysroot.sh SYSROOT}" && pwd)
 fails=0

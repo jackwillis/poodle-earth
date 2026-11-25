@@ -8,7 +8,6 @@ on:
     paths:
       - '.github/workflows/netbsd-macppc-tools.yml'
       - 'packaging/netbsd-macppc/**'
-      - 'tools/netbsd-macppc-tools.sh'
   workflow_dispatch:
 
 permissions:
@@ -36,7 +35,7 @@ jobs:
       - name: Fetch, verify and build tools
         env:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: tools/netbsd-macppc-tools.sh "$RUNNER_TEMP/macppc-work"
+        run: packaging/netbsd-macppc/netbsd-macppc-tools.sh "$RUNNER_TEMP/macppc-work"
       - name: Job summary
         if: always()
         run: |

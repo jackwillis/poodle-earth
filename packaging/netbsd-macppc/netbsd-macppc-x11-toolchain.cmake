@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (c) 2026 Jack Willis
 # Dynamic NetBSD 11.1/macppc cross build of the X11 app on a Linux host. The compiler comes from
-# tools/netbsd-macppc-tools.sh, the sysroot from tools/netbsd-macppc-sysroot.sh. Optimisation flags are
+# packaging/netbsd-macppc/netbsd-macppc-tools.sh, the sysroot from packaging/netbsd-macppc/netbsd-macppc-sysroot.sh. Optimisation flags are
 # not set here: CMake appends -O3 to any *_RELEASE_INIT, so pass -DCMAKE_CXX_FLAGS_RELEASE="-O2 -DNDEBUG"
-# (tools/netbsd-macppc-x11-build.sh does).
+# (packaging/netbsd-macppc/netbsd-macppc-x11-build.sh does).
 foreach(variable GLOBE_NETBSD_TOOLS GLOBE_NETBSD_SYSROOT)
   if("$ENV{${variable}}" STREQUAL "")
     message(FATAL_ERROR "Set ${variable} (tools: the tooldir/bin directory; sysroot: the assembled sysroot)")

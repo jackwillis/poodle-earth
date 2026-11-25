@@ -4,12 +4,12 @@
 # NetBSD 11.1/macppc cross tools, built by build.sh on a Linux host from pinned source sets.
 # This is the first Linux-hosted CI slice only: no sysroot, no application build, no package
 # assembly, no G4 access, no publication. Cold by construction: WORK must not exist or must be empty.
-#   tools/netbsd-macppc-tools.sh WORK
+#   packaging/netbsd-macppc/netbsd-macppc-tools.sh WORK
 # Writes WORK/logs/* and WORK/summary.md; the toolchain lands in WORK/tools.
 #   NETBSD_MIRROR   source-set base URL (default: the NetBSD CDN, 11.1 release)
 #   NETBSD_JOBS     build.sh -j value (default: nproc)
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 repo=$PWD
 work=${1:?usage: netbsd-macppc-tools.sh WORK}
 mirror=${NETBSD_MIRROR:-https://cdn.netbsd.org/pub/NetBSD/NetBSD-11.1/source/sets}

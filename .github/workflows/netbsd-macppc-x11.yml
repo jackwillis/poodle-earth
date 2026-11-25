@@ -1,8 +1,8 @@
 name: NetBSD macppc X11 build
 
 # Third Linux-hosted NetBSD 11.1/macppc slice: cross-build and inspect the dynamic X11 app
-# (poodle-earth-x11) with the tools built from pinned NetBSD 11.1 sources (tools/netbsd-macppc-tools.sh)
-# and the sysroot assembled from pinned release sets (tools/netbsd-macppc-sysroot.sh), all cold on one
+# (poodle-earth-x11) with the tools built from pinned NetBSD 11.1 sources (packaging/netbsd-macppc/netbsd-macppc-tools.sh)
+# and the sysroot assembled from pinned release sets (packaging/netbsd-macppc/netbsd-macppc-sysroot.sh), all cold on one
 # runner. No package assembly, amd64, G4 access or publication. Manual or on a PR that changes the
 # inputs; nothing here is a required status or a scheduled job.
 on:
@@ -10,9 +10,6 @@ on:
     paths:
       - '.github/workflows/netbsd-macppc-x11.yml'
       - 'packaging/netbsd-macppc/**'
-      - 'tools/netbsd-macppc-*.sh'
-      - 'tools/check-netbsd-macppc-sysroot.sh'
-      - 'tools/netbsd-macppc-x11-toolchain.cmake'
       - 'CMakeLists.txt'
   workflow_dispatch:
 
@@ -41,12 +38,12 @@ jobs:
             build-essential zlib1g-dev curl ca-certificates cmake ninja-build python3 binutils
       # No cache action is used anywhere in this job: tools, sysroot and build all start empty.
       - name: Build the cross tools (build.sh tools)
-        run: tools/netbsd-macppc-tools.sh "$RUNNER_TEMP/macppc-work"
+        run: packaging/netbsd-macppc/netbsd-macppc-tools.sh "$RUNNER_TEMP/macppc-work"
       - name: Assemble the sysroot
-        run: tools/netbsd-macppc-sysroot.sh "$RUNNER_TEMP/macppc-sysroot-work"
+        run: packaging/netbsd-macppc/netbsd-macppc-sysroot.sh "$RUNNER_TEMP/macppc-sysroot-work"
       - name: Cross-build and inspect poodle-earth-x11
         run: |
-          tools/netbsd-macppc-x11-build.sh \
+          packaging/netbsd-macppc/netbsd-macppc-x11-build.sh \
             "$RUNNER_TEMP/macppc-work/tooldir/bin" "$RUNNER_TEMP/macppc-sysroot-work/sysroot" \
             "$RUNNER_TEMP/macppc-x11-out"
       - name: Job summary

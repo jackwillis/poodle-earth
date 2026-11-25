@@ -10,8 +10,8 @@ on:
       - '.github/workflows/netbsd-macppc-sysroot.yml'
       - 'packaging/netbsd-macppc/netbsd-11.1-macppc-sets.sha512'
       - 'packaging/netbsd-macppc/PROVENANCE.md'
-      - 'tools/netbsd-macppc-sysroot.sh'
-      - 'tools/check-netbsd-macppc-sysroot.sh'
+      - 'packaging/netbsd-macppc/netbsd-macppc-sysroot.sh'
+      - 'packaging/netbsd-macppc/check-netbsd-macppc-sysroot.sh'
   workflow_dispatch:
 
 permissions:
@@ -34,7 +34,7 @@ jobs:
       - name: Assemble and check the sysroot
         env:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: tools/netbsd-macppc-sysroot.sh "$RUNNER_TEMP/macppc-sysroot-work"
+        run: packaging/netbsd-macppc/netbsd-macppc-sysroot.sh "$RUNNER_TEMP/macppc-sysroot-work"
       - name: Job summary
         if: always()
         run: |

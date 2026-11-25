@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (c) 2026 Jack Willis
 # Cross-builds the dynamic X11 app (poodle-earth-x11) for NetBSD 11.1/macppc on a Linux host with the
-# tools from tools/netbsd-macppc-tools.sh and the sysroot from tools/netbsd-macppc-sysroot.sh, then
+# tools from packaging/netbsd-macppc/netbsd-macppc-tools.sh and the sysroot from packaging/netbsd-macppc/netbsd-macppc-sysroot.sh, then
 # inspects the executable. No package assembly, no G4 access, no publication.
-#   tools/netbsd-macppc-x11-build.sh TOOLS_BIN SYSROOT OUT
+#   packaging/netbsd-macppc/netbsd-macppc-x11-build.sh TOOLS_BIN SYSROOT OUT
 # OUT must not exist or must be empty; the executable lands in OUT/bin, logs in OUT/logs.
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 repo=$PWD
 tools=$(cd "${1:?usage: netbsd-macppc-x11-build.sh TOOLS_BIN SYSROOT OUT}" && pwd)
 sysroot=$(cd "${2:?}" && pwd)
@@ -30,7 +30,7 @@ bad() { echo "FAIL $*"; fails=$((fails + 1)); }
 flags="-O2 -DNDEBUG"
 {
   cmake -S . -B "$build" -G Ninja \
-    -DCMAKE_TOOLCHAIN_FILE="$repo/tools/netbsd-macppc-x11-toolchain.cmake" \
+    -DCMAKE_TOOLCHAIN_FILE="$repo/packaging/netbsd-macppc/netbsd-macppc-x11-toolchain.cmake" \
     -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="$flags" \
     -DPython3_EXECUTABLE="$python" -DGLOBE_BUILD_TESTS=OFF
 } > "$log/configure.log" 2>&1 || { tail -n 40 "$log/configure.log"; exit 1; }

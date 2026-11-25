@@ -4,18 +4,18 @@
 # NetBSD 11.1/macppc base + X11 sysroot, assembled on a Linux host from pinned release sets.
 # Sysroot slice only: no application build, no package, no G4 access, no publication. Cold by
 # construction: WORK must not exist or must be empty. See packaging/netbsd-macppc/PROVENANCE.md.
-#   tools/netbsd-macppc-sysroot.sh WORK
+#   packaging/netbsd-macppc/netbsd-macppc-sysroot.sh WORK
 # Writes WORK/sysroot, WORK/logs/* and WORK/summary.md.
 #   NETBSD_MIRROR            set base URL (default: the NetBSD CDN, 11.1/macppc)
 #   NETBSD_CROSSCHECK_MIRROR second host whose published SHA512 must agree with the pins
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 work=${1:?usage: netbsd-macppc-sysroot.sh WORK}
 rel=NetBSD/NetBSD-11.1/macppc/binary/sets
 mirror=${NETBSD_MIRROR:-https://cdn.netbsd.org/pub/$rel}
 cross=${NETBSD_CROSSCHECK_MIRROR:-https://ftp.netbsd.org/pub/$rel}
 pins=$PWD/packaging/netbsd-macppc/netbsd-11.1-macppc-sets.sha512
-check=$PWD/tools/check-netbsd-macppc-sysroot.sh
+check=$PWD/packaging/netbsd-macppc/check-netbsd-macppc-sysroot.sh
 sets=$(awk '{print $2}' "$pins" | sed 's/\.tgz$//')
 
 if [ -e "$work" ] && [ -n "$(ls -A "$work")" ]; then
