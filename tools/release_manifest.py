@@ -73,6 +73,7 @@ def make_manifest(
         ),
         "notes": [
             "Source archive is created from the committed revision.",
+            "The hybrid CD image embeds the listed source archive byte for byte (Source.tar.gz in the HFS view, SOURCE.TGZ in the ISO 9660 view).",
             "Toolchain versions are not proven reproducible unless pinned and verified.",
             "This manifest records artifact hashes, not OS 9 execution or acceptance.",
         ],
