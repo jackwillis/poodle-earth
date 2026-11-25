@@ -41,11 +41,18 @@ and the amd64 `base`, `comp`, `xbase`, `xcomp` sets (four hosts agreed on 2026-1
 `packaging/netbsd-macppc/PROVENANCE.md`). In the guest, `xbase`, `xcomp` and `xserver` are pinned by SHA-512
 (`netbsd-11.1-amd64-guest-sets.sha512`, repeated in the workflow's prepare step).
 
+**Actions** are pinned to full commit SHAs (`actions/checkout` v4.4.0, `upload-artifact` v4.6.2,
+`download-artifact` v4.3.0, `vmactions/netbsd-vm` v1.5.3). `vmactions/netbsd-vm` has no image-ID or checksum
+output; it downloads `anyvm.py` v0.7.5 and the `anyvm-org/netbsd-builder` v2.2.9 `netbsd-11.1.qcow2.zst` image
+at run time. The workflow's "Record and verify the guest image provenance" step hashes what the runner kept
+and compares it with the GitHub release-asset digests written in the workflow; the result is
+`guest-image-provenance.txt` in the guest evidence (a file that is no longer on the runner is reported as
+not retained, not as verified).
+
 **Not pinned:** the `ubuntu-24.04` image and its apt packages (cmake, ninja, Python, libarchive, binutils,
-GCC; versions are recorded in `provenance.md`); the libarchive and zlib the host `pkg_create` links;
-`actions/checkout`, `upload-artifact` and `download-artifact` by tag; the guest image `vmactions/netbsd-vm`
-downloads (the action is pinned by commit; the image's `uname` is recorded and must say 11.1 amd64); the
-`python313` binary package from the NetBSD 11.1 repository.
+GCC; versions are recorded in `provenance.md`); the libarchive and zlib the host `pkg_create` links; the
+`python313` binary package from the NetBSD 11.1 repository; the image contents beyond the digests above are
+whatever NetBSD 11.1 that image holds (`uname` is recorded and must say 11.1 amd64).
 
 ## Reproducibility limits
 

@@ -56,7 +56,7 @@ jobs:
       PKG_MACHINE_ARCH: x86_64
       PKG_MACHINE_GNU_ARCH: x86_64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
           fetch-depth: 2 # the PR head commit time is the package's SOURCE_DATE_EPOCH
@@ -109,7 +109,7 @@ jobs:
           done
       - name: Upload executable, build logs and readelf output
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: netbsd-11.1-amd64-x11
           path: |
@@ -124,7 +124,7 @@ jobs:
           retention-days: 30
       - name: Upload package, logs and inspection output
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: netbsd-11.1-amd64-package
           path: |
@@ -146,11 +146,11 @@ jobs:
       EXPECTED_SHA256: ${{ needs.build.outputs.package_sha256 }}
       PACKAGE_FILE: ${{ needs.build.outputs.package_file }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
       - name: Download the Linux-built package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: netbsd-11.1-amd64-package
           path: _pkg
@@ -160,9 +160,11 @@ jobs:
           ls -l _pkg/package
           echo "$EXPECTED_SHA256  _pkg/package/$PACKAGE_FILE" | sha256sum -c -
       # vmactions/netbsd-vm v1.5.3, pinned by commit (the same third-party action as the #216 pkgsrc job).
-      # The guest image it downloads is not pinned: the guest script records uname and checks 11.1/amd64.
+      # The action has no image-ID or checksum output. It downloads anyvm.py (v0.7.5) and the image
+      # anyvm-org/netbsd-builder v2.2.9 netbsd-11.1.qcow2.zst at run time, so the next step checks what it
+      # actually used against the digests below (GitHub release-asset digests, read 2026-11-25).
       - name: Install, smoke-test and remove in NetBSD 11.1 amd64
-        uses: vmactions/netbsd-vm@5957cf330aef2e6ddc63c604364c99ce2e02b91d
+        uses: vmactions/netbsd-vm@5957cf330aef2e6ddc63c604364c99ce2e02b91d # v1.5.3
         with:
           release: "11.1"
           arch: x86_64
@@ -187,9 +189,30 @@ jobs:
             pkg_add python313
           run: |
             sh packaging/netbsd-amd64/netbsd-amd64-guest-acceptance.sh "_pkg/package/$PACKAGE_FILE" "$EXPECTED_SHA256" _ci/out
+      - name: Record and verify the guest image provenance
+        if: always()
+        env:
+          ANYVM_SHA256: c192b299b9bf1b9f07b1d5e5b3977b518f8f24a9af9c20da259cdca22271d9f5 # anyvm v0.7.5 anyvm.py
+          IMAGE_SHA256: bc9a83ce2fd6537eca18476b6a4b5e7292cd9cf7e4628c4251c7757e19e09cf3 # netbsd-builder v2.2.9 netbsd-11.1.qcow2.zst
+          PROFILE_SHA256: 7a4ca422ed83ddc53bf4aefde36a703dd477b17c44b810d2ae2f11bf24de21f6 # netbsd-builder v2.2.9 netbsd-11.1.profile.json
+        run: |
+          mkdir -p _ci/out
+          st=0
+          check() { # label expected name-pattern
+            f=$(find /home/runner/work/_actions -type f -name "$3" 2>/dev/null | head -n 1)
+            if [ -z "$f" ]; then echo "NOT RETAINED $1 ($3): not on the runner after the run, so not verified"; return; fi
+            got=$(sha256sum "$f" | cut -d' ' -f1)
+            if [ "$got" = "$2" ]; then echo "VERIFIED $1: $f sha256 $got"; else echo "MISMATCH $1: $f sha256 $got, expected $2"; st=1; fi
+          }
+          {
+            check "anyvm.py v0.7.5" "$ANYVM_SHA256" anyvm.py
+            check "image netbsd-builder v2.2.9 netbsd-11.1.qcow2.zst" "$IMAGE_SHA256" netbsd-11.1.qcow2.zst
+            check "profile netbsd-builder v2.2.9 netbsd-11.1.profile.json" "$PROFILE_SHA256" netbsd-11.1.profile.json
+          } | tee _ci/out/guest-image-provenance.txt
+          exit $st
       - name: Upload guest evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: netbsd-11.1-amd64-guest-evidence
           path: _ci/out
