@@ -96,8 +96,9 @@ ZIP inspected: ESRI Polygon shapefile, UTF-8 DBF, VERSION.txt 5.1.1. Source is o
 Builder preserves multipart exteriors and holes, normalizes spherical orientation, quantizes to
 microdegrees and transliterates English ADMIN labels to ASCII for classic font portability.
 Two Russian source longitudes 180.00000000000006 are clamped within a 1e-9-degree source tolerance.
-Generated `countries.gpol`: 91,928 bytes, SHA-256
-`80c580fa759fc0325ae0d68129af7b6bca437d8ef8dbf5da38d9a0fdb7627c7d`.
+The builder uses Tanzania as the display name for the source record United Republic of Tanzania.
+Generated `countries.gpol`: 91,909 bytes, SHA-256
+`7d10431c0a820023c11bfecf5812c32f38fbdafdf8108bd60e2b854efc1e4157`.
 The source's generalized de facto boundaries and labels are cartographic conventions; small islands
 and some countries are absent at this scale. Made with Natural Earth.
 

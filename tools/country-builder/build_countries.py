@@ -10,6 +10,8 @@ import unicodedata
 import zipfile
 import zlib
 
+DISPLAY_NAME_OVERRIDES = {'United Republic of Tanzania': 'Tanzania'}
+
 SOURCE_SHA = '0f243aeac8ac6cf26f0417285b0bd33ac47f1b5bdb719fd3e0df37d03ea37110'
 
 def vector(point):
@@ -86,7 +88,7 @@ def read_source(path, attributes=None):
         row = dbf[len(result)]
         if attributes is not None:
             attributes.append(row)
-        name=row['ADMIN']
+        name = DISPLAY_NAME_OVERRIDES.get(row['ADMIN'], row['ADMIN'])
         name=unicodedata.normalize('NFKD',name).encode('ascii','ignore').decode()
         result.append((name,rings))
     if len(result)!=len(dbf): raise ValueError('record count')
