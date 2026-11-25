@@ -8,15 +8,19 @@
 # Writes WORK/sysroot, WORK/logs/* and WORK/summary.md.
 #   NETBSD_MIRROR            set base URL (default: the NetBSD CDN, 11.1/macppc)
 #   NETBSD_CROSSCHECK_MIRROR second host whose published SHA512 must agree with the pins
+#   NETBSD_MACHINE           port (default: macppc; amd64 sets are .tar.xz and have their own pin file)
+#   NETBSD_SETS_PINS         pin file (default: packaging/netbsd-macppc/netbsd-11.1-macppc-sets.sha512)
+#   The amd64 workflow also sets the SYSROOT_EXPECT_* variables read by check-netbsd-macppc-sysroot.sh.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 work=${1:?usage: netbsd-macppc-sysroot.sh WORK}
-rel=NetBSD/NetBSD-11.1/macppc/binary/sets
+machine=${NETBSD_MACHINE:-macppc}
+rel=NetBSD/NetBSD-11.1/$machine/binary/sets
 mirror=${NETBSD_MIRROR:-https://cdn.netbsd.org/pub/$rel}
 cross=${NETBSD_CROSSCHECK_MIRROR:-https://ftp.netbsd.org/pub/$rel}
-pins=$PWD/packaging/netbsd-macppc/netbsd-11.1-macppc-sets.sha512
+pins=${NETBSD_SETS_PINS:-$PWD/packaging/netbsd-macppc/netbsd-11.1-macppc-sets.sha512}
 check=$PWD/packaging/netbsd-macppc/check-netbsd-macppc-sysroot.sh
-sets=$(awk '{print $2}' "$pins" | sed 's/\.tgz$//')
+sets=$(awk '{print $2}' "$pins")
 
 if [ -e "$work" ] && [ -n "$(ls -A "$work")" ]; then
   echo "refusing: $work is not empty (this job must start cold)" >&2
@@ -41,7 +45,7 @@ trap 'kill $sampler 2>/dev/null || true' EXIT
 # 1. Fetch the sets and both published digest files.
 t0=$(now)
 for s in $sets; do
-  curl -fsSL --retry 4 --retry-delay 5 -o "$work/dist/$s.tgz" "$mirror/$s.tgz"
+  curl -fsSL --retry 4 --retry-delay 5 -o "$work/dist/$s" "$mirror/$s"
 done
 curl -fsSL --retry 4 -o "$work/dist/SHA512.primary" "$mirror/SHA512"
 curl -fsSL --retry 4 -o "$work/dist/SHA512.cross" "$cross/SHA512"
@@ -53,21 +57,21 @@ t0=$(now)
 {
   for f in primary cross; do
     for s in $sets; do
-      sed -n "s/^SHA512 ($s\.tgz) = \(.*\)$/\1  $s.tgz/p" "$work/dist/SHA512.$f"
+      sed -n "s/^SHA512 ($s) = \(.*\)$/\1  $s/p" "$work/dist/SHA512.$f"
     done > "$work/dist/pins.$f"
     cmp "$work/dist/pins.$f" "$pins" && echo "pins match published SHA512 from $f host"
   done
   ( cd "$work/dist" && sha512sum -c "$pins" )
 } 2>&1 | tee "$log/verify.log"
 t_verify=$(( $(now) - t0 ))
-set_sizes=$(cd "$work/dist" && for s in $sets; do printf '%s %s bytes, ' "$s.tgz" "$(stat -c %s "$s.tgz")"; done)
+set_sizes=$(cd "$work/dist" && for s in $sets; do printf '%s %s bytes, ' "$s" "$(stat -c %s "$s")"; done)
 
 # 3. Assemble from an empty directory, unprivileged. A few directories in base are mode 000;
 #    make directories traversable so the tree can be inspected and removed.
 t0=$(now)
 for s in $sets; do
-  tar -xzf "$work/dist/$s.tgz" --no-same-owner -C "$work/sysroot"
-  tar -tzf "$work/dist/$s.tgz" > "$log/files-$s.txt"
+  tar -xf "$work/dist/$s" --no-same-owner -C "$work/sysroot"
+  tar -tf "$work/dist/$s" > "$log/files-${s%%.*}.txt"
 done
 find "$work/sysroot" -type d -exec chmod u+rwx {} \;
 t_extract=$(( $(now) - t0 ))
@@ -86,7 +90,7 @@ sleep 3; kill $sampler 2>/dev/null || true
 peak=$(cat "$work/.peak")
 gib() { awk -v b="$1" 'BEGIN{printf "%.2f GiB", b/1073741824}'; }
 {
-  echo "## NetBSD 11.1/macppc base + X11 sysroot on Linux"
+  echo "## NetBSD 11.1/$machine base + X11 sysroot on Linux"
   echo
   echo "- result: $([ "$status" -eq 0 ] && echo PASS || echo "FAIL (check exit $status)")"
   echo "- revision tested: $(git rev-parse HEAD) (GITHUB_SHA ${GITHUB_SHA:-unset})"

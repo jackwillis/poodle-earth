@@ -5,9 +5,15 @@
 # needs: target headers, startup objects, C/C++ runtime libraries and the X11 libraries, all
 # big-endian ELF32 PowerPC marked NetBSD 11.1. Needs readelf. Prints ok/FAIL lines; exits 1 on any FAIL.
 #   packaging/netbsd-macppc/check-netbsd-macppc-sysroot.sh SYSROOT
+# The defaults describe macppc. The amd64 workflow sets SYSROOT_EXPECT_CLASS=ELF64, SYSROOT_EXPECT_DATA=little,
+# SYSROOT_EXPECT_MACHINE="Advanced Micro Devices X86-64" and SYSROOT_MD_DIR=amd64.
 set -uo pipefail
 root=$(cd "${1:?usage: check-netbsd-macppc-sysroot.sh SYSROOT}" && pwd)
 fails=0
+expect_class=${SYSROOT_EXPECT_CLASS:-ELF32}
+expect_data=${SYSROOT_EXPECT_DATA:-big}
+expect_machine=${SYSROOT_EXPECT_MACHINE:-PowerPC}
+md_dir=${SYSROOT_MD_DIR:-powerpc}
 ok() { echo "ok   $*"; }
 bad() { echo "FAIL $*"; fails=$((fails + 1)); }
 
@@ -37,10 +43,10 @@ chroot_resolve() {
   [ -e "$root/$cur" ] && echo "$cur"
 }
 
-elf_ok() { # file: ELF32, big endian, PowerPC
+elf_ok() { # file: the expected class, byte order and machine
   local h; h=$(readelf -h "$root/$1" 2>&1) || { bad "$1: not readable ELF"; return; }
-  echo "$h" | grep -q 'Class: *ELF32' && echo "$h" | grep -q 'big endian' && echo "$h" | grep -q 'Machine: *PowerPC$' \
-    && ok "elf32 msb ppc: $1" || bad "$1: not ELF32 big-endian PowerPC"
+  echo "$h" | grep -q "Class: *$expect_class\$" && echo "$h" | grep -q "$expect_data endian" && echo "$h" | grep -q "Machine: *$expect_machine\$" \
+    && ok "$expect_class $expect_data-endian $expect_machine: $1" || bad "$1: not $expect_class $expect_data-endian $expect_machine"
 }
 note_ok() { # file carries NetBSD IDENT 1101000000 (11.1.0)
   readelf -n "$root/$1" 2>/dev/null | grep -q 'IDENT 1101000000 (11.1.0)' && ok "NetBSD 11.1.0 note: $1" || bad "$1: no NetBSD 11.1.0 IDENT note"
@@ -58,7 +64,7 @@ grep -q '#define[[:space:]]*__NetBSD_Version__[[:space:]]*1101000000' "$root/usr
   && ok "usr/include/sys/param.h: __NetBSD_Version__ 1101000000" || bad "param.h is not NetBSD 11.1"
 
 # Target headers: C, machine-dependent, C++ library, X11.
-for h in stdio.h stdlib.h string.h unistd.h pthread.h sys/types.h sys/param.h machine/types.h powerpc/types.h g++/vector g++/array; do
+for h in stdio.h stdlib.h string.h unistd.h pthread.h sys/types.h sys/param.h machine/types.h $md_dir/types.h g++/vector g++/array; do
   need "usr/include/$h"
 done
 for h in Xlib.h Xutil.h Xatom.h keysym.h cursorfont.h extensions/XShm.h; do

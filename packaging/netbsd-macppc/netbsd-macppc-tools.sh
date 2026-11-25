@@ -8,12 +8,16 @@
 # Writes WORK/logs/* and WORK/summary.md; the toolchain lands in WORK/tools.
 #   NETBSD_MIRROR   source-set base URL (default: the NetBSD CDN, 11.1 release)
 #   NETBSD_JOBS     build.sh -j value (default: nproc)
+#   NETBSD_MACHINE  build.sh -m value (default: macppc; the amd64 workflow sets amd64)
+#   NETBSD_TRIPLET  tool prefix of that machine (default: powerpc--netbsd; amd64 is x86_64--netbsd)
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 repo=$PWD
 work=${1:?usage: netbsd-macppc-tools.sh WORK}
 mirror=${NETBSD_MIRROR:-https://cdn.netbsd.org/pub/NetBSD/NetBSD-11.1/source/sets}
 jobs=${NETBSD_JOBS:-$(nproc)}
+machine=${NETBSD_MACHINE:-macppc}
+triplet=${NETBSD_TRIPLET:-powerpc--netbsd}
 pins=$repo/packaging/netbsd-macppc/netbsd-11.1-source.sha512
 sets="gnusrc sharesrc src syssrc"
 
@@ -60,7 +64,7 @@ src_bytes=$(du -sb "$work/root" | cut -f1)
 t0=$(now)
 set +e
 ( cd "$work/root/usr/src" && \
-  ./build.sh -U -m macppc -j "$jobs" \
+  ./build.sh -U -m "$machine" -j "$jobs" \
     -O "$work/obj" -T "$work/tooldir" -D "$work/destdir" -R "$work/release" tools ) \
   > "$log/build-tools.log" 2>&1
 status=$?
@@ -69,12 +73,12 @@ t_build=$(( $(now) - t0 ))
 tail -n 40 "$log/build-tools.log"
 
 # 4. Inspect what exists. This proves the tools were produced, not that they are reproducible.
-gcc=$work/tooldir/bin/powerpc--netbsd-gcc
+gcc=$work/tooldir/bin/$triplet-gcc
 if [ "$status" -eq 0 ] && [ -x "$gcc" ]; then
   { "$gcc" --version | head -n 1
-    "$work/tooldir/bin/powerpc--netbsd-ld" --version | head -n 1
+    "$work/tooldir/bin/$triplet-ld" --version | head -n 1
     "$gcc" -dumpmachine
-    ( cd "$work/tooldir/bin" && sha256sum powerpc--netbsd-gcc powerpc--netbsd-g++ powerpc--netbsd-ld powerpc--netbsd-as ) ; } \
+    ( cd "$work/tooldir/bin" && sha256sum "$triplet-gcc" "$triplet-g++" "$triplet-ld" "$triplet-as" ) ; } \
     > "$log/tool-inspection.log" 2>&1 || status=1
 fi
 t_total=$(( $(now) - t_start ))
@@ -85,7 +89,7 @@ obj_bytes=$(du -sb "$work/obj" 2>/dev/null | cut -f1 || echo 0)
 gib() { awk -v b="$1" 'BEGIN{printf "%.2f GiB", b/1073741824}'; }
 
 {
-  echo "## NetBSD 11.1/macppc build.sh tools on Linux"
+  echo "## NetBSD 11.1/$machine build.sh tools on Linux"
   echo
   echo "- result: $([ "$status" -eq 0 ] && echo PASS || echo "FAIL (build.sh exit $status)")"
   echo "- revision tested: $(git rev-parse HEAD) (GITHUB_SHA ${GITHUB_SHA:-unset})"
@@ -94,7 +98,7 @@ gib() { awk -v b="$1" 'BEGIN{printf "%.2f GiB", b/1073741824}'; }
   echo "- source sets (SHA-512 verified against packaging/netbsd-macppc/netbsd-11.1-source.sha512): $sets"
   echo "- mirror: $mirror"
   echo "- host: $(. /etc/os-release && echo "$PRETTY_NAME"), $(uname -m), $(nproc) CPUs, $(awk '/MemTotal/{printf "%.1f GiB", $2/1048576}' /proc/meminfo) RAM, runner image ${ImageVersion:-unknown}"
-  echo "- build.sh: -U -m macppc -j $jobs tools"
+  echo "- build.sh: -U -m $machine -j $jobs tools"
   echo "- runtime: total ${t_total}s (fetch+verify ${t_fetch}s, extract ${t_extract}s, build.sh tools ${t_build}s)"
   echo "- disk: peak $(gib $((peak_used - base_used))) over baseline (sampled every 5 s); downloads $(gib "$dist_bytes"), extracted sources $(gib "$src_bytes"), obj $(gib "$obj_bytes"), tooldir $(gib "$tool_bytes")"
   echo

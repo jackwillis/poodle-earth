@@ -1,0 +1,206 @@
+name: NetBSD amd64 package
+
+# Linux-hosted NetBSD 11.1/amd64 package: the build job cross-builds poodle-earth-x11 on a clean runner with
+# the tools built from pinned NetBSD 11.1 sources and the sysroot assembled from pinned release sets, then
+# assembles the pkgsrc-format package (the macppc scripts in packaging/netbsd-macppc, parameterised for amd64).
+# The guest job downloads that exact package, verifies its SHA-256, installs it in a NetBSD 11.1/amd64 VM,
+# runs the X11 pixel smoke test under Xvfb, removes it and checks the package database.
+# Not a pkgsrc `make package` build (packaging/pkgsrc and #216 are separate). No G4 access, publication or
+# tag. Manual or on a PR that changes the inputs; nothing here is a required status or a scheduled job.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/netbsd-amd64-package.yml'
+      - 'packaging/netbsd-amd64/**'
+      - 'packaging/netbsd-macppc/**'
+      - 'CMakeLists.txt'
+      - 'tests/test_x11_pixels.py'
+      - 'tests/data/trace1.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and package (NetBSD 11.1, amd64) on Linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    outputs:
+      package_sha256: ${{ steps.package.outputs.sha256 }}
+      package_file: ${{ steps.package.outputs.file }}
+    env:
+      PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      # Port parameters for the scripts in packaging/netbsd-macppc (their defaults are macppc).
+      NETBSD_MACHINE: amd64
+      NETBSD_MACHINE_LABEL: amd64
+      NETBSD_TRIPLET: x86_64--netbsd
+      NETBSD_SETS_PINS: ${{ github.workspace }}/packaging/netbsd-amd64/netbsd-11.1-amd64-sets.sha512
+      SYSROOT_EXPECT_CLASS: ELF64
+      SYSROOT_EXPECT_DATA: little
+      SYSROOT_EXPECT_MACHINE: Advanced Micro Devices X86-64
+      SYSROOT_MD_DIR: amd64
+      X11_TOOLCHAIN_FILE: ${{ github.workspace }}/packaging/netbsd-amd64/netbsd-amd64-x11-toolchain.cmake
+      X11_EXPECT_CLASS: ELF64
+      X11_EXPECT_DATA: little
+      X11_EXPECT_MACHINE: Advanced Micro Devices X86-64
+      X11_EXPECT_TYPE: EXEC|DYN
+      X11_HOST_STRINGS: linux-gnu|lib64
+      PKG_MACHINE_ARCH: x86_64
+      PKG_MACHINE_GNU_ARCH: x86_64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 2 # the PR head commit time is the package's SOURCE_DATE_EPOCH
+      - name: Install host build requirements
+        run: |
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends \
+            build-essential zlib1g-dev curl ca-certificates cmake ninja-build python3 binutils libarchive-dev
+      # No cache action is used anywhere in this job: tools, sysroot and build all start empty.
+      - name: Build the cross tools (build.sh tools)
+        run: packaging/netbsd-macppc/netbsd-macppc-tools.sh "$RUNNER_TEMP/amd64-work"
+      - name: Assemble the sysroot
+        run: packaging/netbsd-macppc/netbsd-macppc-sysroot.sh "$RUNNER_TEMP/amd64-sysroot-work"
+      - name: Cross-build and inspect poodle-earth-x11
+        run: |
+          packaging/netbsd-macppc/netbsd-macppc-x11-build.sh \
+            "$RUNNER_TEMP/amd64-work/tooldir/bin" "$RUNNER_TEMP/amd64-sysroot-work/sysroot" \
+            "$RUNNER_TEMP/amd64-x11-out"
+      - name: Assemble the package from the verified executable
+        run: |
+          packaging/netbsd-macppc/netbsd-macppc-package.sh \
+            "$RUNNER_TEMP/amd64-work/root/usr/src" "$RUNNER_TEMP/amd64-work/tooldir/bin" \
+            "$RUNNER_TEMP/amd64-x11-out" "$RUNNER_TEMP/amd64-package-out"
+      - name: Record the package digest and build provenance
+        id: package
+        run: |
+          out=$RUNNER_TEMP/amd64-package-out
+          pkg=$(ls "$out"/package/*.tgz)
+          [ "$(ls "$out"/package/*.tgz | wc -l)" -eq 1 ]
+          ( cd "$out/package" && sha256sum "$(basename "$pkg")" > SHA256SUMS && cat SHA256SUMS )
+          sha=$(cut -d' ' -f1 "$out/package/SHA256SUMS")
+          echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+          echo "file=$(basename "$pkg")" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Package provenance (NetBSD 11.1/amd64, Linux-assembled)"
+            echo
+            echo "- package: $(basename "$pkg"), sha256 \`$sha\`"
+            echo "- artifact: netbsd-11.1-amd64-package (run $GITHUB_RUN_ID, attempt $GITHUB_RUN_ATTEMPT)"
+            echo "- source: GITHUB_SHA \`$GITHUB_SHA\`; PR head \`${PR_HEAD_SHA:-n/a}\`; commit that fixes SOURCE_DATE_EPOCH: \`${PR_HEAD_SHA:-$GITHUB_SHA}\`"
+            echo "- runner image: ${ImageOS:-?} ${ImageVersion:-?}"
+            echo "- pinned: NetBSD 11.1 source sets (packaging/netbsd-macppc/netbsd-11.1-source.sha512); amd64 base, comp, xbase, xcomp sets (packaging/netbsd-amd64/netbsd-11.1-amd64-sets.sha512)"
+            echo "- not pinned: ubuntu-24.04 image and apt packages (cmake, ninja, python3, libarchive-dev, binutils, build-essential); actions/checkout and actions/upload-artifact by tag"
+            echo "- apt versions: $(dpkg-query -W -f='${Package} ${Version}; ' cmake ninja-build python3 libarchive-dev binutils gcc zlib1g-dev)"
+          } | tee "$out/provenance.md"
+      - name: Job summary
+        if: always()
+        run: |
+          for f in amd64-work/summary.md amd64-sysroot-work/summary.md amd64-x11-out/summary.md amd64-package-out/summary.md amd64-package-out/provenance.md; do
+            [ -f "$RUNNER_TEMP/$f" ] && cat "$RUNNER_TEMP/$f" >> "$GITHUB_STEP_SUMMARY" || true
+          done
+      - name: Upload executable, build logs and readelf output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: netbsd-11.1-amd64-x11
+          path: |
+            ${{ runner.temp }}/amd64-x11-out/bin/poodle-earth
+            ${{ runner.temp }}/amd64-x11-out/logs/
+            ${{ runner.temp }}/amd64-x11-out/summary.md
+            ${{ runner.temp }}/amd64-work/logs/
+            ${{ runner.temp }}/amd64-work/summary.md
+            ${{ runner.temp }}/amd64-sysroot-work/logs/
+            ${{ runner.temp }}/amd64-sysroot-work/summary.md
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Upload package, logs and inspection output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: netbsd-11.1-amd64-package
+          path: |
+            ${{ runner.temp }}/amd64-package-out/package/
+            ${{ runner.temp }}/amd64-package-out/logs/
+            ${{ runner.temp }}/amd64-package-out/summary.md
+            ${{ runner.temp }}/amd64-package-out/provenance.md
+            ${{ runner.temp }}/amd64-package-out/PLIST
+            ${{ runner.temp }}/amd64-package-out/buildinfo
+          if-no-files-found: warn
+          retention-days: 30
+
+  guest:
+    name: Install and smoke-test the package (NetBSD 11.1 amd64 guest)
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      EXPECTED_SHA256: ${{ needs.build.outputs.package_sha256 }}
+      PACKAGE_FILE: ${{ needs.build.outputs.package_file }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download the Linux-built package
+        uses: actions/download-artifact@v4
+        with:
+          name: netbsd-11.1-amd64-package
+          path: _pkg
+      - name: Verify the package digest on the runner
+        run: |
+          [ -n "$EXPECTED_SHA256" ] && [ -n "$PACKAGE_FILE" ]
+          ls -l _pkg/package
+          echo "$EXPECTED_SHA256  _pkg/package/$PACKAGE_FILE" | sha256sum -c -
+      # vmactions/netbsd-vm v1.5.3, pinned by commit (the same third-party action as the #216 pkgsrc job).
+      # The guest image it downloads is not pinned: the guest script records uname and checks 11.1/amd64.
+      - name: Install, smoke-test and remove in NetBSD 11.1 amd64
+        uses: vmactions/netbsd-vm@5957cf330aef2e6ddc63c604364c99ce2e02b91d
+        with:
+          release: "11.1"
+          arch: x86_64
+          mem: 4096
+          envs: 'EXPECTED_SHA256 PACKAGE_FILE'
+          prepare: |
+            set -e
+            PKG_PATH=https://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/amd64/11.1/All
+            export PKG_PATH
+            # The hosted image has no X11 sets; the package needs libX11 and the test needs Xvfb. The digests
+            # are the published SHA512 of NetBSD-11.1/amd64 (packaging/netbsd-amd64/netbsd-11.1-amd64-guest-sets.sha512).
+            S=https://cdn.netbsd.org/pub/NetBSD/NetBSD-11.1/amd64/binary/sets
+            for f in "xbase b977c87c7ed4b51c8faf4b2ee6758bb182bba89ff906bfead20c0936b8dfb5d679a46f22b8f0bc0c1b71ba4055049c3cf4c9512d7d21399115244f8b5e0d8542" \
+                     "xcomp 756617fc6609dfa2e1f107ed9c44eb52896f7deef2b21ffed879436b971ffcfdf47e24c1284c571290012f714a1bc15cbc4dd143830c077223d036b6bda68ff5" \
+                     "xserver 2f6c6ab0448bc051868236977fcfd5f993c0c446fced0d1578fc9fe6ee991e9539156250d3c40f06e8a057bd25c66c41b79f4e8b5ba0d9f673ec01328431b50c"; do
+              set -- $f
+              ftp -o /tmp/$1.tar.xz $S/$1.tar.xz
+              echo "$2  /tmp/$1.tar.xz" | sha512 -c
+              tar -xJpf /tmp/$1.tar.xz -C /
+              rm /tmp/$1.tar.xz
+            done
+            pkg_add python313
+          run: |
+            sh packaging/netbsd-amd64/netbsd-amd64-guest-acceptance.sh "_pkg/package/$PACKAGE_FILE" "$EXPECTED_SHA256" _ci/out
+      - name: Upload guest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: netbsd-11.1-amd64-guest-evidence
+          path: _ci/out
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "## NetBSD 11.1/amd64 guest acceptance"
+            echo
+            echo "- package: \`$PACKAGE_FILE\`, expected sha256 \`$EXPECTED_SHA256\` (from the build job)"
+            echo
+            echo '```'
+            cat _ci/out/summary.txt 2>/dev/null || echo "no guest summary (the guest step failed before copy-back; see its log)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
