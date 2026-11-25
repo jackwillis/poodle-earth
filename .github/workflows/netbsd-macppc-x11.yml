@@ -1,0 +1,72 @@
+name: NetBSD macppc X11 build
+
+# Third Linux-hosted NetBSD 11.1/macppc slice: cross-build and inspect the dynamic X11 app
+# (poodle-earth-x11) with the tools built from pinned NetBSD 11.1 sources (tools/netbsd-macppc-tools.sh)
+# and the sysroot assembled from pinned release sets (tools/netbsd-macppc-sysroot.sh), all cold on one
+# runner. No package assembly, amd64, G4 access or publication. Manual or on a PR that changes the
+# inputs; nothing here is a required status or a scheduled job.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/netbsd-macppc-x11.yml'
+      - 'packaging/netbsd-macppc/**'
+      - 'tools/netbsd-macppc-*.sh'
+      - 'tools/check-netbsd-macppc-sysroot.sh'
+      - 'tools/netbsd-macppc-x11-toolchain.cmake'
+      - 'CMakeLists.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  x11:
+    name: poodle-earth-x11 (NetBSD 11.1, macppc, dynamic) on Linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install host build requirements
+        run: |
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends \
+            build-essential zlib1g-dev curl ca-certificates cmake ninja-build python3 binutils
+      # No cache action is used anywhere in this job: tools, sysroot and build all start empty.
+      - name: Build the cross tools (build.sh tools)
+        run: tools/netbsd-macppc-tools.sh "$RUNNER_TEMP/macppc-work"
+      - name: Assemble the sysroot
+        run: tools/netbsd-macppc-sysroot.sh "$RUNNER_TEMP/macppc-sysroot-work"
+      - name: Cross-build and inspect poodle-earth-x11
+        run: |
+          tools/netbsd-macppc-x11-build.sh \
+            "$RUNNER_TEMP/macppc-work/tooldir/bin" "$RUNNER_TEMP/macppc-sysroot-work/sysroot" \
+            "$RUNNER_TEMP/macppc-x11-out"
+      - name: Job summary
+        if: always()
+        run: |
+          for f in macppc-work/summary.md macppc-sysroot-work/summary.md macppc-x11-out/summary.md; do
+            [ -f "$RUNNER_TEMP/$f" ] && cat "$RUNNER_TEMP/$f" >> "$GITHUB_STEP_SUMMARY" || true
+          done
+      - name: Upload executable, build logs and readelf output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: netbsd-11.1-macppc-x11
+          path: |
+            ${{ runner.temp }}/macppc-x11-out/bin/poodle-earth
+            ${{ runner.temp }}/macppc-x11-out/logs/
+            ${{ runner.temp }}/macppc-x11-out/summary.md
+            ${{ runner.temp }}/macppc-work/logs/
+            ${{ runner.temp }}/macppc-work/summary.md
+            ${{ runner.temp }}/macppc-sysroot-work/logs/
+            ${{ runner.temp }}/macppc-sysroot-work/summary.md
+          if-no-files-found: warn
+          retention-days: 30
