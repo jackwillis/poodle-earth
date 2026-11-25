@@ -1,0 +1,72 @@
+name: NetBSD pkgsrc
+
+# Package acceptance for the pkgsrc recipe on NetBSD 11.1/amd64 (a VM on a hosted runner).
+# Evidence tier: package correctness plus a headless pixel-readback oracle.
+# NOT covered: any real display, timing, NetBSD/macppc (no CI for it; see packaging/pkgsrc/README.md).
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/netbsd-pkgsrc.yml'
+      - 'packaging/pkgsrc/**'
+      - 'tools/netbsd-pkgsrc-acceptance.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  amd64:
+    name: NetBSD 11.1 amd64 pkgsrc package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Source distfile
+        run: |
+          ver=$(sed -n 's/^DISTNAME=[[:space:]]*poodle-earth-//p' packaging/pkgsrc/geography/poodle-earth/Makefile)
+          mkdir -p _ci
+          git archive --prefix="poodle-earth-$ver/" HEAD | gzip -n > _ci/distfile.tar.gz
+          sha256sum _ci/distfile.tar.gz
+      # vmactions/netbsd-vm v1.5.3, pinned by commit. Third-party action; review before trusting.
+      - name: Acceptance in NetBSD 11.1 amd64
+        uses: vmactions/netbsd-vm@5957cf330aef2e6ddc63c604364c99ce2e02b91d
+        with:
+          release: "11.1"
+          arch: x86_64
+          mem: 4096
+          prepare: |
+            set -e
+            PKG_PATH=https://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/amd64/11.1/All
+            export PKG_PATH
+            # The hosted image has no X11 sets; the recipe needs /usr/X11R7 (libX11 and headers, Xvfb).
+            S=https://cdn.netbsd.org/pub/NetBSD/NetBSD-11.1/amd64/binary/sets
+            for f in "xbase b977c87c7ed4b51c8faf4b2ee6758bb182bba89ff906bfead20c0936b8dfb5d679a46f22b8f0bc0c1b71ba4055049c3cf4c9512d7d21399115244f8b5e0d8542" \
+                     "xcomp 756617fc6609dfa2e1f107ed9c44eb52896f7deef2b21ffed879436b971ffcfdf47e24c1284c571290012f714a1bc15cbc4dd143830c077223d036b6bda68ff5" \
+                     "xserver 2f6c6ab0448bc051868236977fcfd5f993c0c446fced0d1578fc9fe6ee991e9539156250d3c40f06e8a057bd25c66c41b79f4e8b5ba0d9f673ec01328431b50c"; do
+              set -- $f
+              ftp -o /tmp/$1.tar.xz $S/$1.tar.xz
+              echo "$2  /tmp/$1.tar.xz" | sha512 -c
+              tar -xJpf /tmp/$1.tar.xz -C /
+              rm /tmp/$1.tar.xz
+            done
+            pkg_add cmake python313 ninja-build pkglint
+            cd /usr
+            ftp -o /tmp/pkgsrc.tar.xz https://cdn.netbsd.org/pub/pkgsrc/pkgsrc-2026Q3/pkgsrc-2026Q3.tar.xz
+            echo "9510afa27c450208fa369e2fd0f25c199952cd6e1abfd9737d0fd3f091123a34664e022a53d5ac386a665f34e862a0a8ef72710566f7842f5590e544b803d8ea  /tmp/pkgsrc.tar.xz" | sha512 -c
+            tar -xJf /tmp/pkgsrc.tar.xz -C /usr
+            rm /tmp/pkgsrc.tar.xz
+          run: |
+            sh tools/netbsd-pkgsrc-acceptance.sh _ci/distfile.tar.gz _ci/out
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: netbsd-11.1-amd64-pkgsrc-evidence
+          path: _ci/out
+          if-no-files-found: warn
