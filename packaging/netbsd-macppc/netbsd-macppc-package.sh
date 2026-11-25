@@ -14,7 +14,8 @@
 # Environment: PKG_VERSION (default 0.1.3), SOURCE_DATE_EPOCH (default: the build's source commit time).
 # Port overrides, default macppc: NETBSD_TRIPLET (powerpc--netbsd), NETBSD_MACHINE_LABEL (macppc, in the package
 # file name and labels), PKG_MACHINE_ARCH (powerpc), PKG_MACHINE_GNU_ARCH (powerpc), X11_EXPECT_CLASS (ELF32),
-# X11_EXPECT_DATA (big) and X11_EXPECT_MACHINE (PowerPC), the same variables netbsd-macppc-x11-build.sh reads.
+# X11_EXPECT_DATA (big) and X11_EXPECT_MACHINE (PowerPC), the same variables netbsd-macppc-x11-build.sh reads, and
+# PKG_REQUIRES_LIBS (the shared libraries written as REQUIRES, in order; default is the macppc executable's set).
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 repo=$PWD
@@ -37,6 +38,7 @@ mach_gnu_arch=${PKG_MACHINE_GNU_ARCH:-powerpc}
 expect_class=${X11_EXPECT_CLASS:-ELF32}
 expect_data=${X11_EXPECT_DATA:-big}
 expect_machine=${X11_EXPECT_MACHINE:-PowerPC}
+requires_libs=${PKG_REQUIRES_LIBS:-libX11.so.7 libXext.so.7 libICE.so.7 libSM.so.7 libc.so.12 libm.so.0 libstdc++.so.9 libgcc_s.so.1}
 strip=$tooldir/bin/$triplet-strip
 fails=0
 ok() { echo "ok   $*"; }
@@ -106,15 +108,10 @@ LICENSE=gnu-gpl-v3 AND cc0-1.0-universal AND cc-by-v4.0 AND public-domain
 CC_VERSION=gcc-$("$tooldir/bin/$triplet-g++" -dumpversion)
 BUILD_HOST=$host
 EXPERIMENTAL=pkgsrc-format package assembled on Linux by pkg_create built from NetBSD 11.1 sources, from a cross-built executable (source ${revision:0:12}); not a pkgsrc make-package build and not an official package
-REQUIRES=/usr/X11R7/lib/libX11.so.7
-REQUIRES=/usr/X11R7/lib/libXext.so.7
-REQUIRES=/usr/X11R7/lib/libICE.so.7
-REQUIRES=/usr/X11R7/lib/libSM.so.7
-REQUIRES=/usr/lib/libc.so.12
-REQUIRES=/usr/lib/libm.so.0
-REQUIRES=/usr/lib/libstdc++.so.9
-REQUIRES=/usr/lib/libgcc_s.so.1
 EOB
+for l in $requires_libs; do
+  case $l in libX*|libICE*|libSM*) echo "REQUIRES=/usr/X11R7/lib/$l" ;; *) echo "REQUIRES=/usr/lib/$l" ;; esac
+done >> "$out/buildinfo"
 
 # 4. pkg_create, twice into separate directories. Clock and group database are fixed (pe-epoch.so,
 #    SOURCE_DATE_EPOCH) and inputs get the same mtime, so the two archives can be compared.

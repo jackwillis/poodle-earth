@@ -50,6 +50,9 @@ jobs:
       X11_EXPECT_MACHINE: Advanced Micro Devices X86-64
       X11_EXPECT_TYPE: EXEC|DYN
       X11_HOST_STRINGS: linux-gnu|lib64
+      # The amd64 executable has no libgcc_s.so.1 NEEDED entry (the macppc one has); observed in run 45684001788.
+      X11_EXPECT_NEEDED: libICE.so.7 libSM.so.7 libX11.so.7 libXext.so.7 libc.so.12 libm.so.0 libstdc++.so.9
+      PKG_REQUIRES_LIBS: libX11.so.7 libXext.so.7 libICE.so.7 libSM.so.7 libc.so.12 libm.so.0 libstdc++.so.9
       PKG_MACHINE_ARCH: x86_64
       PKG_MACHINE_GNU_ARCH: x86_64
     steps:

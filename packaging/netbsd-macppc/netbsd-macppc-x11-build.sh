@@ -10,6 +10,7 @@
 #   NETBSD_TRIPLET        tool prefix (powerpc--netbsd)       NETBSD_MACHINE_LABEL  label in the summary (macppc)
 #   X11_TOOLCHAIN_FILE    CMake toolchain file (packaging/netbsd-macppc/netbsd-macppc-x11-toolchain.cmake)
 #   X11_EXPECT_CLASS (ELF32)  X11_EXPECT_DATA (big)  X11_EXPECT_MACHINE (PowerPC)  X11_EXPECT_TYPE (EXEC, a regex)
+#   X11_EXPECT_NEEDED     the exact DT_NEEDED set, sorted (libICE.so.7 libSM.so.7 libX11.so.7 libXext.so.7 libc.so.12 libgcc_s.so.1 libm.so.0 libstdc++.so.9)
 #   X11_HOST_STRINGS      regex of runner strings that must not appear in the binary (x86_64|lib64)
 set -euo pipefail
 cd "$(dirname "$0")/../.."
@@ -110,7 +111,7 @@ r "Type:[[:space:]]+($expect_type)" && ok "type $expect_type" || bad "type is no
 r 'NetBSD.*IDENT 1101000000 \(11\.1\.0\)' && ok "NetBSD 11.1.0 ident note" || bad "no NetBSD 11.1.0 ident note"
 r 'interpreter: /usr/libexec/ld\.elf_so\]' && ok "interpreter /usr/libexec/ld.elf_so" || bad "interpreter"
 needed=$(sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p' "$log/readelf.txt" | LC_ALL=C sort | tr '\n' ' ')
-want="libICE.so.7 libSM.so.7 libX11.so.7 libXext.so.7 libc.so.12 libgcc_s.so.1 libm.so.0 libstdc++.so.9 "
+want="${X11_EXPECT_NEEDED:-libICE.so.7 libSM.so.7 libX11.so.7 libXext.so.7 libc.so.12 libgcc_s.so.1 libm.so.0 libstdc++.so.9} "
 [ "$needed" = "$want" ] && ok "NEEDED: $needed" || bad "NEEDED is '$needed', expected '$want'"
 for lib in $needed; do
   found=$(ls "$sysroot/usr/lib/$lib" "$sysroot/lib/$lib" "$sysroot/usr/X11R7/lib/$lib" 2>/dev/null | head -n 1 || true)
