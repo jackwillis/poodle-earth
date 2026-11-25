@@ -6,6 +6,12 @@
 # inspects the executable. No package assembly, no G4 access, no publication.
 #   packaging/netbsd-macppc/netbsd-macppc-x11-build.sh TOOLS_BIN SYSROOT OUT
 # OUT must not exist or must be empty; the executable lands in OUT/bin, logs in OUT/logs.
+# The defaults describe NetBSD 11.1/macppc. The amd64 workflow overrides them (all optional):
+#   NETBSD_TRIPLET        tool prefix (powerpc--netbsd)       NETBSD_MACHINE_LABEL  label in the summary (macppc)
+#   X11_TOOLCHAIN_FILE    CMake toolchain file (packaging/netbsd-macppc/netbsd-macppc-x11-toolchain.cmake)
+#   X11_EXPECT_CLASS (ELF32)  X11_EXPECT_DATA (big)  X11_EXPECT_MACHINE (PowerPC)  X11_EXPECT_TYPE (EXEC, a regex)
+#   X11_EXPECT_NEEDED     the exact DT_NEEDED set, sorted (libICE.so.7 libSM.so.7 libX11.so.7 libXext.so.7 libc.so.12 libgcc_s.so.1 libm.so.0 libstdc++.so.9)
+#   X11_HOST_STRINGS      regex of runner strings that must not appear in the binary (x86_64|lib64)
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 repo=$PWD
@@ -21,6 +27,14 @@ out=$(cd "$out" && pwd)
 log=$out/logs
 build=$out/build
 python=$(command -v python3)
+triplet=${NETBSD_TRIPLET:-powerpc--netbsd}
+label=${NETBSD_MACHINE_LABEL:-macppc}
+toolchain=${X11_TOOLCHAIN_FILE:-$repo/packaging/netbsd-macppc/netbsd-macppc-x11-toolchain.cmake}
+expect_class=${X11_EXPECT_CLASS:-ELF32}
+expect_data=${X11_EXPECT_DATA:-big}
+expect_machine=${X11_EXPECT_MACHINE:-PowerPC}
+expect_type=${X11_EXPECT_TYPE:-EXEC}
+host_strings=${X11_HOST_STRINGS:-x86_64|lib64}
 export GLOBE_NETBSD_TOOLS=$tools GLOBE_NETBSD_SYSROOT=$sysroot
 fails=0
 ok() { echo "ok   $*"; }
@@ -30,7 +44,7 @@ bad() { echo "FAIL $*"; fails=$((fails + 1)); }
 flags="-O2 -DNDEBUG"
 {
   cmake -S . -B "$build" -G Ninja \
-    -DCMAKE_TOOLCHAIN_FILE="$repo/packaging/netbsd-macppc/netbsd-macppc-x11-toolchain.cmake" \
+    -DCMAKE_TOOLCHAIN_FILE="$toolchain" \
     -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="$flags" \
     -DPython3_EXECUTABLE="$python" -DGLOBE_BUILD_TESTS=OFF
 } > "$log/configure.log" 2>&1 || { tail -n 40 "$log/configure.log"; exit 1; }
@@ -90,14 +104,14 @@ n=$(wc -l < "$log/link-inputs.txt")
   echo "== sha256 / size"; sha256sum "$exe"; stat -c %s "$exe"
 } > "$log/readelf.txt" 2>&1
 r() { grep -q -E "$1" "$log/readelf.txt"; }
-r 'Class:[[:space:]]+ELF32' && ok "ELF32" || bad "not ELF32"
-r "Data:[[:space:]]+2's complement, big endian" && ok "big endian" || bad "not big endian"
-r 'Machine:[[:space:]]+PowerPC$' && ok "machine PowerPC" || bad "not PowerPC"
-r 'Type:[[:space:]]+EXEC' && ok "EXEC" || bad "not EXEC"
+r "Class:[[:space:]]+$expect_class\$" && ok "$expect_class" || bad "not $expect_class"
+r "Data:[[:space:]]+2's complement, $expect_data endian" && ok "$expect_data endian" || bad "not $expect_data endian"
+r "Machine:[[:space:]]+$expect_machine\$" && ok "machine $expect_machine" || bad "not $expect_machine"
+r "Type:[[:space:]]+($expect_type)" && ok "type $expect_type" || bad "type is not $expect_type"
 r 'NetBSD.*IDENT 1101000000 \(11\.1\.0\)' && ok "NetBSD 11.1.0 ident note" || bad "no NetBSD 11.1.0 ident note"
 r 'interpreter: /usr/libexec/ld\.elf_so\]' && ok "interpreter /usr/libexec/ld.elf_so" || bad "interpreter"
 needed=$(sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p' "$log/readelf.txt" | LC_ALL=C sort | tr '\n' ' ')
-want="libICE.so.7 libSM.so.7 libX11.so.7 libXext.so.7 libc.so.12 libgcc_s.so.1 libm.so.0 libstdc++.so.9 "
+want="${X11_EXPECT_NEEDED:-libICE.so.7 libSM.so.7 libX11.so.7 libXext.so.7 libc.so.12 libgcc_s.so.1 libm.so.0 libstdc++.so.9} "
 [ "$needed" = "$want" ] && ok "NEEDED: $needed" || bad "NEEDED is '$needed', expected '$want'"
 for lib in $needed; do
   found=$(ls "$sysroot/usr/lib/$lib" "$sysroot/lib/$lib" "$sysroot/usr/X11R7/lib/$lib" 2>/dev/null | head -n 1 || true)
@@ -106,16 +120,16 @@ done
 [ -e "$sysroot/libexec/ld.elf_so" ] && ok "interpreter present in the sysroot (rooted)" || bad "interpreter missing in sysroot"
 rpaths=$(sed -n 's/.*(\(RPATH\|RUNPATH\)).*\[\(.*\)\]/\2/p' "$log/readelf.txt")
 [ "$rpaths" = "/usr/X11R7/lib" ] && ok "RPATH is exactly /usr/X11R7/lib" || bad "RPATH/RUNPATH is '$rpaths'"
-if strings -a "$exe" | grep -E -- "$sysroot|$tools|$out|/home/|/runner|/tmp/|x86_64|lib64" > "$log/host-path-strings.txt"; then bad "runner or host paths in the binary (host-path-strings.txt)"; else ok "no runner or host paths in the binary"; fi
+if strings -a "$exe" | grep -E -- "$sysroot|$tools|$out|/home/|/runner|/tmp/|$host_strings" > "$log/host-path-strings.txt"; then bad "runner or host paths in the binary (host-path-strings.txt)"; else ok "no runner or host paths in the binary"; fi
 echo "relink-free ldd-style check: $(readelf -d "$exe" | grep -c NEEDED) NEEDED entries"
 
 {
-  echo "## NetBSD 11.1/macppc X11 cross build on Linux"
+  echo "## NetBSD 11.1/$label X11 cross build on Linux"
   echo
   echo "- result: $([ "$fails" -eq 0 ] && echo PASS || echo "FAIL ($fails checks)")"
   echo "- revision tested: $(git rev-parse HEAD) (GITHUB_SHA ${GITHUB_SHA:-unset})"
   echo "- pull request head: ${PR_HEAD_SHA:-n/a}"
-  echo "- compiler: $("$tools/powerpc--netbsd-g++" --version | head -n 1); cmake $(cmake --version | head -n 1 | cut -d' ' -f3), ninja $(ninja --version), python $("$python" --version 2>&1)"
+  echo "- compiler: $("$tools/$triplet-g++" --version | head -n 1); cmake $(cmake --version | head -n 1 | cut -d' ' -f3), ninja $(ninja --version), python $("$python" --version 2>&1)"
   echo "- flags: Release with CMAKE_CXX_FLAGS_RELEASE='$flags'"
   echo "- executable: $(stat -c %s "$exe") bytes, sha256 $(sha256sum "$exe" | cut -d' ' -f1)"
   echo "- cache: none"
