@@ -227,7 +227,8 @@ struct AfTest {
 
     static void start_scene(App& app) {
         CHECK(app.init());
-        app.country_names_ = false; // first experiment: no native label overlay
+        app.country_names_ = false; // The expected frame excludes native label overlays.
+        app.city_names_ = false;
         XMoveWindow(app.dpy_, app.win_, 0, 0);
         XMoveWindow(app.dpy_, app.toolbar_, 0, 400);
         drain(app, Arm::P); // map/configure/initial Expose; ignored while need_redraw_ is set

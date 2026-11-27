@@ -37,7 +37,7 @@ cmp /tmp/countries.gpol data/countries.gpol
 
 The Classic View menu and X11 tools window (F2) both offer **Country Names**.
 Labels default on when the edition and font are available. Classic tries
-Helvetica, then Palatino at 10 points; if neither family resolves, Country Names
+Helvetica, then Geneva at 10 points (Geneva replaced Palatino with the #219 convention); if neither family resolves, Country Names
 is unchecked and disabled and no labels draw. A valid edition-bound anchor table
 is also required. X11 tries the 12-pixel ISO-8859-1 Helvetica medium XLFD, then
 the server's `fixed` font. If both fail, no labels draw and the tools toggle is
@@ -106,3 +106,41 @@ gate. Its numerical and font-removal steps were waived as recorded above.
 
 The historical procedure does not establish numerical timings or actual painted
 bounds; use the acceptance and limitations record above for v0.1.2 status.
+
+## City names (#219)
+
+**View → City Names** (Classic) and the X11 tools window's second toggle draw city names beside
+their dots on settled frames, after the country names. Country names are bold and city names plain,
+both in the same family (X11 uses the bold Helvetica XLFD when the server has it). Country names
+also duck the city dots: a centred label that would cover a dot moves up, down, right or left by
+half its size plus four pixels, and is omitted if nowhere is clear. Cities are placed by
+the same placer in a second call that treats the country labels as already taken, so a city never
+covers a country name. A city label sits four pixels right of its dot and keeps two pixels from
+every other label.
+
+Which cities appear depends on zoom. GPLC v2 stores a population tier per city (0 is 10 million or
+more, then 5 million, 2.5 million, and the rest; see [place-format.md](../place-format.md)).
+`max_place_tier` takes the radius as a fraction of the shorter window side: under 0.8 only tier 0,
+under 1.4 up to tier 1, under 2.6 up to tier 2, then all four. A whole globe is about 0.4, so it
+names only the largest cities. The thresholds are first guesses for the owner to judge on the G4.
+
+Font theme (owner direction, 2026-11-19): terrain (physical features such as oceans and lakes) in
+Palatino, human (political features: countries and cities) in Helvetica. Cities and countries share
+the Helvetica-then-Geneva lookup; large cities (tiers 0 and 1) draw at 10 points and the rest at 9
+(X11 uses a 10-pixel face when the server has one); water labels and per-role fonts remain with #61.
+
+Storage: a second candidate vector (all 304 cities, about 14 KiB on 32-bit Classic) and one
+reserved per-frame selection vector of up to 256 candidates (about 12 KiB), allocated once at
+startup; plus one more 32-entry output array on the stack. The timing title adds `cities N`.
+Native timing and appearance are unmeasured.
+
+### Wrapping long names (#219)
+
+A name wider than its candidate's `max_width` (80 pixels for countries, 64 for cities; owner
+direction 2026-11-19, first guesses) wraps at spaces into at most three lines, in the core
+(`wrap` in `src/render/label_layout.cpp`, using the platform's own measure). A line takes words
+while it fits; a single word wider than the limit stays whole; the last line takes the remainder.
+The placer sees one box (widest line by number of lines) so overlap, ducking and limb clipping are
+unchanged. Countries centre each line; cities beside a dot align left. `label_runs` turns a placed
+label into the runs to draw. Labels placed in one frame now share one heap array of 96 entries per
+front end instead of stack arrays, since a wrapped placement is larger (about 44 bytes on 32-bit).

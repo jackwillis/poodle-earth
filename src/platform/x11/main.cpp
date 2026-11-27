@@ -114,8 +114,12 @@ class App {
           model_(initial_model(opt.width, opt.height)), info_(dpy), styles_(dpy), prefs_pane_(dpy) {
         packs_.register_levels(model_);
         places_ = Places::parse(kEmbeddedPlacesData, kEmbeddedPlacesSize);
-        if (places_)
+        if (places_) {
             place_scene_ = PlaceScene::create(*places_);
+            place_labels_ = places_->label_candidates();
+            city_candidates_.reserve(kMaxLabelCandidates);
+            dot_boxes_.reserve(places_->count());
+        }
         countries_ = Countries::parse(kEmbeddedCountriesData, kEmbeddedCountriesSize);
         if (countries_) {
             country_scene_ = CountryScene::create(*countries_);
@@ -139,6 +143,14 @@ class App {
         }
         if (label_gc_)
             XFreeGC(dpy_, label_gc_);
+        if (label_small_gc_)
+            XFreeGC(dpy_, label_small_gc_);
+        if (label_small_font_)
+            XFreeFont(dpy_, label_small_font_);
+        if (label_bold_gc_)
+            XFreeGC(dpy_, label_bold_gc_);
+        if (label_bold_font_)
+            XFreeFont(dpy_, label_bold_font_);
         if (label_font_)
             XFreeFont(dpy_, label_font_);
         if (gc_ != nullptr) {
@@ -169,7 +181,7 @@ class App {
         wm_delete_ = XInternAtom(dpy_, "WM_DELETE_WINDOW", False);
         XSetWMProtocols(dpy_, win_, &wm_delete_, 1);
         gc_ = XCreateGC(dpy_, win_, 0, nullptr);
-        if (!opt_.verify_pixels && !country_labels_.empty()) {
+        if (!opt_.verify_pixels && (!country_labels_.empty() || !place_labels_.empty())) {
             label_font_ =
                 XLoadQueryFont(dpy_, "-*-helvetica-medium-r-normal--12-*-*-*-*-*-iso8859-1");
             if (!label_font_)
@@ -178,13 +190,27 @@ class App {
                 XGCValues values{};
                 values.font = label_font_->fid;
                 label_gc_ = XCreateGC(dpy_, win_, GCFont, &values);
+                // Country names are bold where the server has one; otherwise they match the cities.
+                label_bold_font_ =
+                    XLoadQueryFont(dpy_, "-*-helvetica-bold-r-normal--12-*-*-*-*-*-iso8859-1");
+                if (label_bold_font_) {
+                    values.font = label_bold_font_->fid;
+                    label_bold_gc_ = XCreateGC(dpy_, win_, GCFont, &values);
+                }
+                // Smaller cities use a 10-pixel face when there is one.
+                label_small_font_ =
+                    XLoadQueryFont(dpy_, "-*-helvetica-medium-r-normal--10-*-*-*-*-*-iso8859-1");
+                if (label_small_font_) {
+                    values.font = label_small_font_->fid;
+                    label_small_gc_ = XCreateGC(dpy_, win_, GCFont, &values);
+                }
             }
         }
         if (!make_buffers(opt_.width, opt_.height)) {
             return false;
         }
         toolbar_ = XCreateSimpleWindow(dpy_, RootWindow(dpy_, screen), 0, opt_.height + 20,
-                                       kToolbarWidth, kToolbarHeight + 28, 1,
+                                       kToolbarWidth, kToolbarHeight + 56, 1,
                                        BlackPixel(dpy_, screen), WhitePixel(dpy_, screen));
         XStoreName(dpy_, toolbar_, "Poodle Earth tools");
         XSetTransientForHint(dpy_, toolbar_, win_);
@@ -697,35 +723,68 @@ class App {
     void draw_country_names() {
         if (!labels_shown_)
             return;
-        std::array<PlacedLabel, kMaxPlacedLabels> placed;
-        const auto count = place_labels(
-            model_.camera, country_labels_,
-            [](void* context, std::string_view text, LabelRole) -> std::optional<LabelMetrics> {
-                int direction, ascent, descent;
-                XCharStruct bounds{};
-                XTextExtents(static_cast<XFontStruct*>(context), text.data(),
-                             static_cast<int>(text.size()), &direction, &ascent, &descent, &bounds);
-                return LabelMetrics{bounds.lbearing, bounds.rbearing + 1, bounds.ascent,
-                                    bounds.descent + 1};
-            },
-            label_font_, placed);
+        const auto measure = [](void* context, std::string_view text,
+                                LabelRole) -> std::optional<LabelMetrics> {
+            int direction, ascent, descent;
+            XCharStruct bounds{};
+            XTextExtents(static_cast<XFontStruct*>(context), text.data(),
+                         static_cast<int>(text.size()), &direction, &ascent, &descent, &bounds);
+            return LabelMetrics{bounds.lbearing, bounds.rbearing + 1, bounds.ascent,
+                                bounds.descent + 1};
+        };
         const int screen = DefaultScreen(dpy_);
-        for (std::size_t i = 0; i < count; ++i) {
-            const auto& label = placed[i];
-            const auto text = country_labels_[label.candidate].text;
-            const auto length = static_cast<int>(text.size());
-            XSetForeground(dpy_, label_gc_, WhitePixel(dpy_, screen));
-            // XDrawString consumes the explicit length; string_view need not be NUL-terminated.
-            // NOLINTBEGIN(bugprone-suspicious-stringview-data-usage)
-            XDrawString(dpy_, win_, label_gc_, label.baseline_x + 1, label.baseline_y + 1,
-                        text.data(), length);
-            // NOLINTEND(bugprone-suspicious-stringview-data-usage)
-            XSetForeground(dpy_, label_gc_, BlackPixel(dpy_, screen));
-            // XDrawString consumes the explicit length; string_view need not be NUL-terminated.
-            // NOLINTBEGIN(bugprone-suspicious-stringview-data-usage)
-            XDrawString(dpy_, win_, label_gc_, label.baseline_x, label.baseline_y, text.data(),
-                        length);
-            // NOLINTEND(bugprone-suspicious-stringview-data-usage)
+        const auto draw = [&](GC gc, std::span<const PlacedLabel> labels,
+                              std::span<const LabelCandidate> source) {
+            for (const auto& label : labels) {
+                std::array<LabelRun, kMaxLabelLines> runs;
+                const auto n = label_runs(label, source[label.candidate].text, runs);
+                for (std::size_t i = 0; i < n; ++i) {
+                    const auto& run = runs[i];
+                    const auto length = static_cast<int>(run.text.size());
+                    XSetForeground(dpy_, gc, WhitePixel(dpy_, screen));
+                    // XDrawString consumes the explicit length; string_view need not be
+                    // NUL-terminated. NOLINTBEGIN(bugprone-suspicious-stringview-data-usage)
+                    XDrawString(dpy_, win_, gc, run.x + 1, run.y + 1, run.text.data(), length);
+                    // NOLINTEND(bugprone-suspicious-stringview-data-usage)
+                    XSetForeground(dpy_, gc, BlackPixel(dpy_, screen));
+                    // XDrawString consumes the explicit length; string_view need not be
+                    // NUL-terminated. NOLINTBEGIN(bugprone-suspicious-stringview-data-usage)
+                    XDrawString(dpy_, win_, gc, run.x, run.y, run.text.data(), length);
+                    // NOLINTEND(bugprone-suspicious-stringview-data-usage)
+                }
+            }
+        };
+        // One heap array holds every label placed this frame, so later passes keep clear of
+        // earlier ones and the stack stays small.
+        const std::span<PlacedLabel> taken(placed_labels_);
+        std::size_t taken_count = 0;
+        if (country_names_ && !country_labels_.empty()) {
+            // Country names are bold and duck the city dots.
+            XFontStruct* const font = label_bold_font_ ? label_bold_font_ : label_font_;
+            if (place_scene_)
+                place_scene_->dot_boxes(model_.camera, dot_boxes_);
+            const auto out = taken.subspan(0, kMaxPlacedLabels);
+            taken_count =
+                place_labels(model_.camera, country_labels_, measure, font, out, dot_boxes_);
+            draw(label_bold_gc_ ? label_bold_gc_ : label_gc_, out.first(taken_count),
+                 country_labels_);
+        }
+        if (city_names_ && places_ && !place_labels_.empty()) {
+            // Large cities in the 12-pixel face, the rest in the 10-pixel one where the server has
+            // it; each pass keeps clear of the labels already drawn.
+            for (const bool large : {true, false}) {
+                select_place_labels(*places_, place_labels_, model_.camera, city_candidates_,
+                                    large ? 0 : kLastLargeCityTier + 1,
+                                    large ? kLastLargeCityTier : kLastPlaceTier);
+                XFontStruct* const font =
+                    !large && label_small_font_ ? label_small_font_ : label_font_;
+                const GC gc = !large && label_small_gc_ ? label_small_gc_ : label_gc_;
+                const auto out = taken.subspan(taken_count, kMaxPlacedLabels);
+                const auto city_count = place_labels(model_.camera, city_candidates_, measure, font,
+                                                     out, taken.first(taken_count));
+                draw(gc, out.first(city_count), city_candidates_);
+                taken_count += city_count;
+            }
         }
     }
 
@@ -756,7 +815,7 @@ class App {
         // the rendered frame stays exactly as it was and clearing an overlay needs no re-render.
         const bool settled = frame_settled(model_, runner_.active());
         const bool show_labels =
-            settled && !presentation_held(model_) && country_names_ && label_gc_;
+            settled && !presentation_held(model_) && (country_names_ || city_names_) && label_gc_;
         if (show_labels || labels_shown_) {
             first_row = 0;
             end_row = fb.height();
@@ -808,7 +867,7 @@ class App {
         const int screen = DefaultScreen(dpy_);
         const auto white = WhitePixel(dpy_, screen), black = BlackPixel(dpy_, screen);
         XSetForeground(dpy_, gc_, white);
-        XFillRectangle(dpy_, toolbar_, gc_, 0, 0, kToolbarWidth, kToolbarHeight + 28);
+        XFillRectangle(dpy_, toolbar_, gc_, 0, 0, kToolbarWidth, kToolbarHeight + 56);
         for (std::size_t i = 0; i < kCommandCount; ++i) {
             const auto state = toolbar_cache_[i];
             if (!state.visible)
@@ -829,6 +888,10 @@ class App {
             const char* label = country_names_ ? "[x] Country Names" : "[ ] Country Names";
             XDrawString(dpy_, toolbar_, gc_, 13, kToolbarHeight + 15, label,
                         static_cast<int>(std::strlen(label)));
+            XDrawRectangle(dpy_, toolbar_, gc_, 8, kToolbarHeight + 28, 122, 22);
+            const char* city_label = city_names_ ? "[x] City Names" : "[ ] City Names";
+            XDrawString(dpy_, toolbar_, gc_, 13, kToolbarHeight + 43, city_label,
+                        static_cast<int>(std::strlen(city_label)));
         }
     }
     bool handle(XEvent& ev) {
@@ -856,6 +919,14 @@ class App {
                 if (label_gc_ && ev.xbutton.x >= 8 && ev.xbutton.x <= 130 &&
                     ev.xbutton.y >= kToolbarHeight && ev.xbutton.y <= kToolbarHeight + 22) {
                     country_names_ = !country_names_;
+                    if (frame_valid_ && fb_ && !presentation_held(model_))
+                        upload(0, fb_->height());
+                    draw_toolbar();
+                    return false;
+                }
+                if (label_gc_ && ev.xbutton.x >= 8 && ev.xbutton.x <= 130 &&
+                    ev.xbutton.y >= kToolbarHeight + 28 && ev.xbutton.y <= kToolbarHeight + 50) {
+                    city_names_ = !city_names_;
                     if (frame_valid_ && fb_ && !presentation_held(model_))
                         upload(0, fb_->height());
                     draw_toolbar();
@@ -1083,6 +1154,15 @@ class App {
     std::optional<CountryScene> country_scene_;
     std::vector<LabelCandidate> country_labels_;
     bool country_names_ = true;
+    bool city_names_ = true;
+    std::vector<LabelCandidate> place_labels_;
+    std::vector<LabelCandidate> city_candidates_;
+    std::vector<PlacedLabel> dot_boxes_;
+    std::vector<PlacedLabel> placed_labels_ = std::vector<PlacedLabel>(3 * kMaxPlacedLabels);
+    XFontStruct* label_bold_font_ = nullptr;
+    GC label_bold_gc_ = nullptr;
+    XFontStruct* label_small_font_ = nullptr;
+    GC label_small_gc_ = nullptr;
     Overlays overlays_;
     std::size_t info_cards_ = 0;
     Window win_ = 0, toolbar_ = 0;
