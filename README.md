@@ -1,73 +1,40 @@
 # Poodle Earth
 
-An offline globe for PowerPC Classic Macs. Turn the Earth, explore countries and
-cities, switch between **Map** and **Relief**, shade the night side and measure
-great-circle distances. All geographic data are built in; no network connection
-is used.
+**An offline, software-rendered globe for PowerPC Classic Macs.** Turn the Earth, explore countries and cities, and see the world from another angle. Poodle Earth is free software; a Unix/X11 frontend can also be built from source.
 
-**[Download Poodle Earth v0.1.2](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.2)**
+**[Download Poodle Earth v0.1.2](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.2)** · [Website](https://jackwillis.github.io/poodle-earth/) · [User guide](docs/user-guide.md) · [Changelog](CHANGELOG.md)
 
-Choose a StuffIt (`.sit`) archive or a hybrid CD image (`.iso`). The release page also includes matching source and checksums.
+![Poodle Earth on a Classic Mac desktop, showing the Map look and information sidebar](site/images/os9-hero-map.png)
 
-[Website](https://jackwillis.github.io/poodle-earth/) ·
-[User guide](docs/user-guide.md) · [Changelog](CHANGELOG.md)
+*Captured on a Power Mac G4 running bare Mac OS 9.2.2 on November 17, 2026 (development build `110a197`). This screenshot predates the country-label feature in v0.1.2. [Capture provenance](docs/images/os9/README.md).*
 
-![Poodle Earth in Map look, with the globe and information sidebar on a Classic Mac desktop](site/images/os9-hero-map.png)
+## Features
 
-Captured on a Power Mac G4 under **bare Mac OS 9.2.2** on November 17,
-2026, using development build `110a197`.
-[Original captures and conversion provenance](docs/images/os9/README.md).
+- **Explore the globe:** drag to rotate, zoom and recenter, or navigate with the keyboard.
+- **Choose a map look:** switch between biome-colored **Map** and elevation-shaded **Relief**.
+- **Discover places:** select countries and cities to view information cards; country names appear when the globe settles and can be toggled off.
+- **Explore overlays:** show country borders, the latitude/longitude grid and the day/night boundary.
+- **Measure distances:** calculate great-circle distances and bearings, in metric or imperial units.
+- **Find your bearings:** use the compass rose, geographic scale, native menus and in-app controls help.
+- **Work offline:** the compact atlas is built in, and the application needs no network access.
 
-## Install and explore
+## Download and platforms
 
-1. Download the `.sit` from the release page and expand it with **StuffIt Expander
-   on the Mac**. Keep the application, ReadMe, both License files and DataCredit
-   together in a folder on your hard disk.
-2. Double-click **Poodle Earth**. Drag to turn the globe, double-click to center
-   and zoom, and click a country or city for its information card.
-3. Choose Map or Relief in the sidebar or View menu. Country names appear after
-   the globe settles; **View → Country Names** toggles them. Use `+` / `-` to zoom,
-   `D` for night shading and `M`, then two clicks, to measure a distance.
+The published application is for **PowerPC Classic Mac OS**. The [v0.1.2 release](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.2) includes a StuffIt archive (`.sit`), a hybrid HFS/ISO CD image (`.iso`), matching source and checksums.
 
-Use Finder to copy the application: it needs both its data and resource forks.
-For a compatible PowerPC emulator, use the ISO download: attach it as a **CD-ROM**, open the volume in Finder, drag the application
-and accompanying documents to the guest hard disk, and launch the copy. This
-avoids StuffIt. See [installation and troubleshooting](docs/user-guide.md)
-and the [CD guide and exact test evidence](docs/os9-cd-image.md).
+| Platform | Availability |
+| --- | --- |
+| **Classic Mac OS (PowerPC)** | Published binary. The exact v0.1.2 StuffIt archive and CD image were tested on a Power Mac G4 running bare Mac OS 9.2.2. |
+| **Earlier PowerPC Mac OS** | Earlier development builds were smoke-tested in emulation back to System 7.1.2; this is not blanket certification of v0.1.2 on those systems. |
+| **Linux and NetBSD (X11)** | Separate frontend available from source; no published Unix binary packages yet. |
 
-## Platforms and limits
+On a Classic Mac, expand the `.sit` with StuffIt Expander. Alternatively, mount the ISO as a CD in a compatible PowerPC environment. **Copy the application and accompanying files using Finder** so its resource fork and Finder information survive.
 
-The published v0.1.0 preview was tested on a **Power Mac G4 AGP, 467 MHz,
-256 MB, bare Mac OS 9.2.2** ([test record](https://github.com/jackwillis/poodle-earth/issues/95)).
-Its application memory settings are 24 MB preferred and 12 MB minimum. Quit the
-app before changing these in Finder's Get Info > Memory; larger windows need
-more memory.
+The Classic application has a **24 MB preferred / 12 MB minimum** application-memory setting. It is PowerPC-only, not a 68k or native Mac OS X application. See the [user guide](docs/user-guide.md) for installation steps, controls and troubleshooting, and the [v0.1.2 release notes](docs/release-notes-0.1.2.md) for tested behavior and limitations.
 
-Later QuickDraw-cursor previews were smoke-tested by Jack in Infinite Mac on
-PowerPC System 7.1.2, 7.5, 7.5.3 and Mac OS 7.6, 8.0, 8.1 and 8.5.
-These are [build-specific emulator observations](https://github.com/jackwillis/poodle-earth/issues/174#issuecomment-6969352476),
-not a compatibility certification for the original download. The application is
-PowerPC only; a 68k compile probe does not provide a 68k app. Tiger Classic runs
-are separate from bare OS 9 tests.
+## Build from source
 
-The compact data set has 1:110 million-scale coastlines and borders, one-degree
-terrain and 304 cities. Small islands, small countries and many cities are
-missing; names are ASCII. There is no street map, data download, saved preference
-file or custom application icon. The v0.1.0 preview can leave an unfinished globe
-edge; turn or zoom to repaint it. See the [changelog](CHANGELOG.md)
-for changes after v0.1.0 and [v0.1.1 notes](docs/release-notes-0.1.1.md).
-[v0.1.2 release notes](docs/release-notes-0.1.2.md) summarize country labels
-and known limitations. The screenshots above predate the label feature.
-
-## Build and contribute
-
-The source also builds a NetBSD/Linux **X11 frontend** with a toolbar, looks
-palette and optional local elevation packs. It shares the rendering core but
-has different window controls and shortcuts; Classic instructions do not imply
-full frontend parity. It is a source-build path, not a published Unix download.
-
-With a C++20 compiler, CMake, Ninja, Python 3 and X11 development libraries
-(and Xvfb for display tests):
+On Linux or NetBSD, install a C++20 compiler, CMake, Ninja, Python 3 and X11 development libraries (Xvfb is used for display tests), then run:
 
 ```sh
 cmake -S . -B build -G Ninja
@@ -76,21 +43,30 @@ ctest --test-dir build --output-on-failure
 ./build/poodle-earth
 ```
 
-The last command needs an authorized X display. To install the executable and its
-notices under a prefix (the binary embeds its data and needs no other files):
+The last command requires an X display. Classic Mac builds use [Retro68 and separate tooling](docs/toolchain.md). See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests and pull-request guidance; frontend controls differ across operating systems.
 
-```sh
-cmake --install build --prefix /usr/local   # honours DESTDIR for staging
-```
+## Architecture
 
-Start at
-[Contributing](CONTRIBUTING.md) for verification expectations,
-[toolchains](docs/toolchain.md) for Retro68/Classic builds, and the
-[documentation index](docs/README.md) for architecture, formats and research.
-The CMake project is `poodle-earth` and its X11 target `poodle-earth-x11`; the C++ `globe` namespace is unchanged;
-the Unix executable is named `poodle-earth`.
-The repository is `jackwillis/poodle-earth`; the public rename is tracked in
-[#124](https://github.com/jackwillis/poodle-earth/issues/124).
+Poodle Earth has a portable **C++20 core** organized around an Elm-inspired `Model / Msg / update / Effects` loop. A CPU software renderer draws the globe progressively. Native frontends present it through the Classic Macintosh Toolbox/QuickDraw or X11.
 
-Free software under **GPL-3.0-or-later**. Geographic data have separate licences:
-[data sources](data/SOURCES.md), [data credits](data/DATA-CREDITS.txt).
+Modern-host tools prepare geographic data as compact, validated resources; the Classic Mac application does not need Python, a GPU or an online service. More detail is in the [architecture overview](docs/architecture.md), [atlas production guide](atlas/README.md) and [documentation index](docs/README.md).
+
+## Roadmap
+
+- **v0.1.3 — First Unix distribution:** work toward tested NetBSD pkgsrc and Linux x86-64 packages for the existing X11 frontend.
+- **v0.2 — The Atlas on the Map:** clearer labels and discovery, richer information about places, and more coherent geographic navigation.
+- **Later:** richer offline geography and regional editions, resource management, and additional platforms where practical and tested.
+
+Plans may change. [Milestones](https://github.com/jackwillis/poodle-earth/milestones) and [issues](https://github.com/jackwillis/poodle-earth/issues) are the current roadmap, not a promise that in-progress features are available.
+
+## Inspiration
+
+Poodle Earth draws inspiration from classic Macintosh atlases and educational software, the portability of [NetBSD](https://www.netbsd.org/), geographic explorers such as [KDE Marble](https://marble.kde.org/) and [NASA WorldWind](https://worldwind.arc.nasa.gov/), and offline knowledge projects such as [Kiwix](https://kiwix.org/). It is an independent project, learning from the work of many others.
+
+## Geographic data and license
+
+The built-in atlas uses **[Natural Earth](https://www.naturalearthdata.com/)** (coastlines and boundaries), **[NOAA NCEI ETOPO 2022](https://www.ncei.noaa.gov/products/etopo-global-relief-model)** (elevation and bathymetry), **[Wikidata](https://www.wikidata.org/)** (places) and **[RESOLVE Ecoregions](https://ecoregions.world/)** (adapted biome classes).
+
+Data have been simplified for older computers: the current atlas contains 304 city points, coarse terrain and generalized borders; small islands, some countries and many cities are missing. There are no street maps. Boundaries are cartographic references, not statements about political status. See the [complete data credits and license notices](data/DATA-CREDITS.txt), [source provenance](data/SOURCES.md) and [data licensing policy](docs/licensing-policy.md).
+
+Poodle Earth is free software under the **GNU GPL, version 3 or later**. Geographic datasets retain their own licenses. Bug reports, geographic corrections and code contributions are welcome; start with [CONTRIBUTING.md](CONTRIBUTING.md).
