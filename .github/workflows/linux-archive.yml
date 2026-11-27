@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+name: Linux archive
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/linux-archive.yml'
+      - 'CMakeLists.txt'
+      - 'packaging/linux-x86_64/**'
+      - 'tools/**'
+      - 'src/**'
+      - 'include/**'
+      - 'data/**'
+      - 'tests/data/trace1.txt'
+      - 'LICENSE'
+      - 'README.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux-x86_64:
+    runs-on: ubuntu-24.04
+    container: debian:12
+    timeout-minutes: 20
+    steps:
+      - name: Install Debian build and smoke-test tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            binutils build-essential ca-certificates cmake git libx11-dev \
+            ninja-build python3 xauth xvfb
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Build and smoke-test the archive
+        env:
+          GLOBE_RELEASE_STRICT: '1'
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          command -v xvfb-run
+          tools/package-unix-archive.sh build-unix-archive
+          cd build-unix-archive
+          sha256sum -c SHA256SUMS
+          tar -xOf poodle-earth-*-linux-x86_64.tar.gz --wildcards '*/BUILD-INFO.txt' > BUILD-INFO.txt
+          cat BUILD-INFO.txt
+          required=$(sed -n 's/^glibc_required=//p' BUILD-INFO.txt)
+          test -n "$required"
+          dpkg --compare-versions "$required" le 2.34
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: poodle-earth-linux-x86_64-debian12
+          path: |
+            build-unix-archive/*.tar.gz
+            build-unix-archive/SHA256SUMS
+            build-unix-archive/BUILD-INFO.txt
+          if-no-files-found: error
