@@ -11,7 +11,7 @@
 #     TOOLDIR  tooldir/bin of that build (nbcompat headers and library live beside it)
 #     X11_OUT  output directory of netbsd-macppc-x11-build.sh (build/ and bin/poodle-earth)
 #     OUT      new, empty directory
-# Environment: PKG_VERSION (default 0.1.3), SOURCE_DATE_EPOCH (default: the build's source commit time).
+# Environment: PKG_VERSION (default: the project version in CMakeLists.txt), SOURCE_DATE_EPOCH (default: the build's source commit time).
 # Port overrides, default macppc: NETBSD_TRIPLET (powerpc--netbsd), NETBSD_MACHINE_LABEL (macppc, in the package
 # file name and labels), PKG_MACHINE_ARCH (powerpc), PKG_MACHINE_GNU_ARCH (powerpc), X11_EXPECT_CLASS (ELF32),
 # X11_EXPECT_DATA (big) and X11_EXPECT_MACHINE (PowerPC), the same variables netbsd-macppc-x11-build.sh reads, and
@@ -28,7 +28,8 @@ if [ -e "$out" ] && [ -n "$(ls -A "$out")" ]; then echo "refusing: $out is not e
 mkdir -p "$out"/{logs,pkgtool}
 out=$(cd "$out" && pwd)
 log=$out/logs
-version=${PKG_VERSION:-0.1.3}
+version=${PKG_VERSION:-$(sed -n 's/^project(poodle-earth VERSION \([0-9][0-9.]*\).*/\1/p' "$repo/CMakeLists.txt")}
+[ -n "$version" ] || { echo "no project version in CMakeLists.txt" >&2; exit 2; }
 epoch=${SOURCE_DATE_EPOCH:-$(git log -1 --format=%ct "${PR_HEAD_SHA:-HEAD}" 2>/dev/null || git log -1 --format=%ct HEAD)}
 exe=$x11/bin/poodle-earth
 triplet=${NETBSD_TRIPLET:-powerpc--netbsd}
