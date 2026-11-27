@@ -40,7 +40,7 @@ On Linux or NetBSD, install a C++20 compiler, CMake, Ninja, Python 3 and X11 dev
 cmake -S . -B build -G Ninja
 cmake --build build
 ctest --test-dir build --output-on-failure
-./build/globe-x11
+./build/poodle-earth
 ```
 
 The last command requires an X display. Classic Mac builds use [Retro68 and separate tooling](docs/toolchain.md). See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests and pull-request guidance; frontend controls differ across operating systems.

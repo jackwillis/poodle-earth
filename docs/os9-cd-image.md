@@ -5,7 +5,18 @@ alongside the StuffIt archive and corresponding source. The version comes from
 CMake and the revision from Git. The image is a non-bootable ISO-9660/classic HFS
 hybrid with 2048-byte optical sectors and an Apple Partition Map. The Macintosh
 view contains Poodle Earth (both forks, `APPL` / `PdlE`), ReadMe, two license
-parts and DataCredit. It contains no system software.
+parts, DataCredit, `Source Notes` and `Source.tar.gz`. It contains no system software.
+
+`Source.tar.gz` is the release's complete corresponding source: the same file,
+byte for byte, as `PoodleEarth-<version>-<revision>-source.tar.gz` published
+beside the image (#231). `tools/package-release.sh` makes that archive once,
+before the disc, and hands the file to `tools/package_cd.py`; the disc never
+carries a second archive. `Source Notes` names the revision and the archive's
+SHA-256. The ISO 9660 view has the same bytes as `SOURCE.TGZ;1` (cdrkit's
+8.3 name for it). An offline reader
+can copy either file and verify it against the published SHA-256. Its Finder type
+and creator are `Gzip` / `SITx`, so StuffIt Expander opens it. The StuffIt
+download does not contain the source.
 
 cdrkit's `genisoimage -hfs -part --macbin` decodes MacBinary into the HFS
 catalog and shares payload extents with the ISO view. The ISO view is accessible
@@ -67,14 +78,21 @@ GLOBE_RELEASE_STRICT=1 tools/package-release.sh build-os9-floppy
 (cd build-os9-floppy/release && sha256sum -c SHA256SUMS)
 python3 -m unittest discover -s tests -p test_package_cd.py -v
 epoch=${SOURCE_DATE_EPOCH:-$(git log -1 --format=%ct)}
-python3 tools/package_cd.py build-os9-floppy /tmp/poodle-earth-rebuild.iso "$epoch"
+src=$(echo build-os9-floppy/release/PoodleEarth-*-source.tar.gz)
+python3 tools/package_cd.py --source "$src" --notes build-os9-floppy/source-notes.txt \
+  build-os9-floppy /tmp/poodle-earth-rebuild.iso "$epoch"
 cmp build-os9-floppy/release/PoodleEarth-*-hfs.iso /tmp/poodle-earth-rebuild.iso
 ```
 
 The packager checks the ISO descriptor, partition map, and classic HFS signature,
 then uses hfsutils to read back the directory and MacBinary forks independently
-of cdrkit. To repeat the structural verification on an existing file, add
-`--verify-only` to the Python command and pass that image's path. To inspect the
+of cdrkit. It also reads the source archive back from both views, the HFS view
+with hfsutils and the ISO 9660 view with a small reader of its own (not cdrkit),
+and refuses the image unless both equal the standalone archive. CI repeats that
+comparison with `isoinfo` and `hcopy` (the `Extract the source archive...` step). To repeat the structural verification on an existing file, add
+`--verify-only` to the Python command and pass that image's path (the source
+archive and notes it was built with are required, so the check also proves the
+image carries that archive). To inspect the
 ISO view separately, run `isoinfo -d -i IMAGE` and `isoinfo -f -i IMAGE`.
 
 The staging dates and cdrkit clock use `SOURCE_DATE_EPOCH` (default: commit

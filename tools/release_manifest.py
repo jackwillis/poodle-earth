@@ -14,11 +14,11 @@ import re
 
 def cmake_version(path: Path) -> str:
     match = re.search(
-        r"project\(globe\s+VERSION\s+([0-9]+\.[0-9]+\.[0-9]+)\b",
+        r"project\(poodle-earth\s+VERSION\s+([0-9]+\.[0-9]+\.[0-9]+)\b",
         path.read_text(encoding="utf-8"),
     )
     if not match:
-        raise ValueError("missing project(globe VERSION ...) in CMakeLists.txt")
+        raise ValueError("missing project(poodle-earth VERSION ...) in CMakeLists.txt")
     return match.group(1)
 
 
@@ -73,6 +73,7 @@ def make_manifest(
         ),
         "notes": [
             "Source archive is created from the committed revision.",
+            "The hybrid CD image embeds the listed source archive byte for byte (Source.tar.gz in the HFS view, SOURCE.TGZ in the ISO 9660 view).",
             "Toolchain versions are not proven reproducible unless pinned and verified.",
             "This manifest records artifact hashes, not OS 9 execution or acceptance.",
         ],

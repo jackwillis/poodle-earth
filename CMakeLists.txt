@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (c) 2026 Jack Willis
 cmake_minimum_required(VERSION 3.20)
-project(globe VERSION 0.1.2 LANGUAGES CXX)
+project(poodle-earth VERSION 0.1.3 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -148,16 +148,18 @@ if(X11_FOUND AND TARGET globe_embedded_atlas)
     DEPENDS data/elevation-0.5deg.gelv tools/embed_atlas.py)
   add_library(globe_embedded_fineelevation ${CMAKE_BINARY_DIR}/embedded_fineelevation.cpp)
   target_link_libraries(globe_embedded_fineelevation PUBLIC globe_core)
-  add_executable(globe-x11 src/platform/x11/main.cpp src/platform/x11/info_window.cpp src/platform/x11/style_window.cpp src/platform/x11/prefs_pane.cpp)
-  target_include_directories(globe-x11 PRIVATE ${X11_INCLUDE_DIR})
-  target_link_libraries(globe-x11 PRIVATE globe_embedded_fineelevation globe_embedded_places globe_embedded_countries globe_embedded_atlas globe_embedded_elevation globe_platform_common
+  add_executable(poodle-earth-x11 src/platform/x11/main.cpp src/platform/x11/info_window.cpp src/platform/x11/style_window.cpp src/platform/x11/prefs_pane.cpp)
+  target_include_directories(poodle-earth-x11 PRIVATE ${X11_INCLUDE_DIR})
+  target_link_libraries(poodle-earth-x11 PRIVATE globe_embedded_fineelevation globe_embedded_places globe_embedded_countries globe_embedded_atlas globe_embedded_elevation globe_platform_common
                                           globe_clock_posix ${X11_LIBRARIES})
-  target_compile_options(globe-x11 PRIVATE -Wall -Wextra -Wpedantic)
+  target_compile_options(poodle-earth-x11 PRIVATE -Wall -Wextra -Wpedantic)
+  # The Unix command is poodle-earth; the target keeps the -x11 suffix to name the frontend.
+  set_target_properties(poodle-earth-x11 PROPERTIES OUTPUT_NAME poodle-earth)
 
   # The executable embeds its atlas and elevation data, so it needs no data files at run time.
   # Only the notices that must accompany it are installed.
-  include(GNUInstallDirs)
-  install(TARGETS globe-x11 RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+  include(GNUInstallDirs) # docs default to share/doc/${PROJECT_NAME}, i.e. share/doc/poodle-earth
+  install(TARGETS poodle-earth-x11 RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES LICENSE README.md data/DATA-CREDITS.txt data/LANDCLASS-NOTICE.txt
           DESTINATION ${CMAKE_INSTALL_DOCDIR})
 endif()
@@ -225,14 +227,14 @@ if(GLOBE_BUILD_TESTS)
     add_test(NAME progressive COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test_progressive.py
       $<TARGET_FILE:globe-bench> ${CMAKE_SOURCE_DIR}/data/elevation-0.5deg.gelv)
   endif()
-  if(TARGET globe-x11)
+  if(TARGET poodle-earth-x11)
     find_program(XVFB_RUN xvfb-run)
     if(XVFB_RUN)
       # Smoke tests against a private virtual X server at both common depths. trace1 includes a
       # resize, so the buffer-recreation path runs too.
       foreach(depth 24 16)
         add_test(NAME x11_smoke_${depth}
-                 COMMAND ${XVFB_RUN} -a -s "-screen 0 800x600x${depth}" $<TARGET_FILE:globe-x11>
+                 COMMAND ${XVFB_RUN} -a -s "-screen 0 800x600x${depth}" $<TARGET_FILE:poodle-earth-x11>
                          --size 160x120 --script ${CMAKE_SOURCE_DIR}/tests/data/trace1.txt
                          --exit-when-done --stats)
         set_tests_properties(x11_smoke_${depth} PROPERTIES PASS_REGULAR_EXPRESSION
@@ -243,46 +245,58 @@ if(GLOBE_BUILD_TESTS)
         add_test(NAME x11_pixels_${depth}
                  COMMAND ${XVFB_RUN} -a -s "-screen 0 800x600x${depth}"
                          ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test_x11_pixels.py ${depth}
-                         $<TARGET_FILE:globe-x11> --size 161x121
+                         $<TARGET_FILE:poodle-earth-x11> --size 161x121
                          --script ${CMAKE_SOURCE_DIR}/tests/data/trace1.txt
                          --exit-when-done --verify-pixels --stats)
         set_tests_properties(x11_pixels_${depth} PROPERTIES TIMEOUT 120)
+      endforeach()
+      add_executable(test_x11_approved_repaint tests/test_x11_approved_repaint.cpp
+        src/platform/x11/info_window.cpp src/platform/x11/style_window.cpp src/platform/x11/prefs_pane.cpp)
+      target_include_directories(test_x11_approved_repaint PRIVATE ${X11_INCLUDE_DIR})
+      target_link_libraries(test_x11_approved_repaint PRIVATE globe_embedded_fineelevation globe_embedded_places
+        globe_embedded_countries globe_embedded_atlas globe_embedded_elevation globe_platform_common
+        globe_clock_posix ${X11_LIBRARIES})
+      target_compile_options(test_x11_approved_repaint PRIVATE -Wall -Wextra -Wpedantic)
+      foreach(depth 24 16)
+        add_test(NAME x11_approved_repaint_${depth}
+                 COMMAND ${XVFB_RUN} -a -s "-screen 0 800x600x${depth}" $<TARGET_FILE:test_x11_approved_repaint>)
+        set_tests_properties(x11_approved_repaint_${depth} PROPERTIES TIMEOUT 120)
       endforeach()
       add_executable(test_x11_toolbar tests/test_x11_toolbar.cpp)
       target_include_directories(test_x11_toolbar PRIVATE ${X11_INCLUDE_DIR})
       target_link_libraries(test_x11_toolbar PRIVATE globe_core ${X11_LIBRARIES})
       add_test(NAME x11_toolbar COMMAND ${XVFB_RUN} -a -s "-screen 0 800x600x24"
-               $<TARGET_FILE:test_x11_toolbar> $<TARGET_FILE:globe-x11>)
+               $<TARGET_FILE:test_x11_toolbar> $<TARGET_FILE:poodle-earth-x11>)
       set_tests_properties(x11_toolbar PROPERTIES TIMEOUT 20)
       add_test(NAME x11_repaint COMMAND ${XVFB_RUN} -a -s "-screen 0 800x600x24"
-               $<TARGET_FILE:test_x11_toolbar> $<TARGET_FILE:globe-x11> repaint)
+               $<TARGET_FILE:test_x11_toolbar> $<TARGET_FILE:poodle-earth-x11> repaint)
       set_tests_properties(x11_repaint PROPERTIES TIMEOUT 20)
       add_executable(test_x11_country_names tests/test_x11_country_names.cpp)
       target_include_directories(test_x11_country_names PRIVATE ${X11_INCLUDE_DIR})
       target_link_libraries(test_x11_country_names PRIVATE globe_core ${X11_LIBRARIES})
       add_test(NAME x11_country_names COMMAND ${XVFB_RUN} -a -s "-screen 0 800x600x24"
-               $<TARGET_FILE:test_x11_country_names> $<TARGET_FILE:globe-x11>)
+               $<TARGET_FILE:test_x11_country_names> $<TARGET_FILE:poodle-earth-x11>)
       set_tests_properties(x11_country_names PROPERTIES TIMEOUT 20)
       # A click and window exposes resend pixels; they never render or restart refinement.
       add_test(NAME x11_click
                COMMAND ${XVFB_RUN} -a -s "-screen 0 800x600x24"
                        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test_x11_click.py
-                       $<TARGET_FILE:globe-x11>
+                       $<TARGET_FILE:poodle-earth-x11>
                        --size 160x120 --script ${CMAKE_SOURCE_DIR}/tests/data/click_expose.txt
                        --exit-when-done --verify-pixels --stats)
       set_tests_properties(x11_click PROPERTIES TIMEOUT 60)
       add_test(NAME x11_zoom COMMAND ${XVFB_RUN} -a -s "-screen 0 800x600x24"
-        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test_x11_zoom.py $<TARGET_FILE:globe-x11>
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test_x11_zoom.py $<TARGET_FILE:poodle-earth-x11>
         ${CMAKE_SOURCE_DIR}/tests/data)
       set_tests_properties(x11_zoom PROPERTIES TIMEOUT 120)
       add_test(NAME x11_progressive COMMAND ${XVFB_RUN} -a -s "-screen 0 800x600x24"
-        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test_x11_progressive.py $<TARGET_FILE:globe-x11>)
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test_x11_progressive.py $<TARGET_FILE:poodle-earth-x11>)
       set_tests_properties(x11_progressive PROPERTIES TIMEOUT 120)
       # Nothing may be drawn while the window sits idle.
       add_test(NAME x11_idle
                COMMAND ${XVFB_RUN} -a -s "-screen 0 800x600x24"
                        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/test_x11_wakes.py
-                       $<TARGET_FILE:globe-x11>
+                       $<TARGET_FILE:poodle-earth-x11>
                        --size 160x120 --script ${CMAKE_SOURCE_DIR}/tests/data/trace1.txt
                        --idle-seconds 2 --verify-pixels --stats)
       set_tests_properties(x11_idle PROPERTIES TIMEOUT 120)
