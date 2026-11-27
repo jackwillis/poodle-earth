@@ -32,6 +32,9 @@ if git ls-files 'src/platform/common/*' | xargs grep -nE '#include <(X11/|sys/)'
 	bad "src/platform/common is shared by every platform and must not include X11 or sys/ headers (clock_posix.cpp excepted)"
 fi
 
+# The credits file ships in every artifact; its heading must not carry a release number that goes stale (#230).
+head -n 1 data/DATA-CREDITS.txt | grep -q '[0-9]\.[0-9]' && bad "data/DATA-CREDITS.txt heading names a version"
+
 missing=$(git ls-files 'include/*' 'src/*' 'tests/*' 'tools/*' 'CMakeLists.txt' | \
     grep -E '\.(cpp|hpp|cc|h|sh|py)$|(^|/)CMakeLists\.txt$' | \
     xargs grep -L 'SPDX-License-Identifier: GPL-3.0-or-later')
