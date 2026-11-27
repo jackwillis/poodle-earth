@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (c) 2026 Jack Willis
 cmake_minimum_required(VERSION 3.20)
-project(poodle-earth VERSION 0.1.2 LANGUAGES CXX)
+project(poodle-earth VERSION 0.1.3 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -249,6 +249,18 @@ if(GLOBE_BUILD_TESTS)
                          --script ${CMAKE_SOURCE_DIR}/tests/data/trace1.txt
                          --exit-when-done --verify-pixels --stats)
         set_tests_properties(x11_pixels_${depth} PROPERTIES TIMEOUT 120)
+      endforeach()
+      add_executable(test_x11_approved_repaint tests/test_x11_approved_repaint.cpp
+        src/platform/x11/info_window.cpp src/platform/x11/style_window.cpp src/platform/x11/prefs_pane.cpp)
+      target_include_directories(test_x11_approved_repaint PRIVATE ${X11_INCLUDE_DIR})
+      target_link_libraries(test_x11_approved_repaint PRIVATE globe_embedded_fineelevation globe_embedded_places
+        globe_embedded_countries globe_embedded_atlas globe_embedded_elevation globe_platform_common
+        globe_clock_posix ${X11_LIBRARIES})
+      target_compile_options(test_x11_approved_repaint PRIVATE -Wall -Wextra -Wpedantic)
+      foreach(depth 24 16)
+        add_test(NAME x11_approved_repaint_${depth}
+                 COMMAND ${XVFB_RUN} -a -s "-screen 0 800x600x${depth}" $<TARGET_FILE:test_x11_approved_repaint>)
+        set_tests_properties(x11_approved_repaint_${depth} PROPERTIES TIMEOUT 120)
       endforeach()
       add_executable(test_x11_toolbar tests/test_x11_toolbar.cpp)
       target_include_directories(test_x11_toolbar PRIVATE ${X11_INCLUDE_DIR})

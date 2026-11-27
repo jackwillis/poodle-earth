@@ -1,6 +1,6 @@
 Poodle Earth - Classic PowerPC ReadMe
 
-Poodle Earth v0.1.2
+Poodle Earth v0.1.3
 
 An offline, software-rendered globe: drag to turn it, zoom in, and click a
 country or city for its information card. Nothing is downloaded or sent;
