@@ -180,8 +180,7 @@ std::size_t place_labels(const Camera& camera, std::span<const LabelCandidate> c
         if (avoided(box)) {
             if (beside)
                 continue; // a label beside its marker is dropped, never moved
-            // A centred label ducks: up, down, right, then left of where it was, until clear. With
-            // nowhere clear it stays put and is drawn over what it avoids.
+            // Try up, down, right, then left before dropping the label.
             const int up = height / 2 + kDuckMargin, across = width / 2 + kDuckMargin;
             const std::array<std::array<int, 2>, 4> moves{
                 {{0, -up}, {0, up}, {across, 0}, {-across, 0}}};
@@ -194,6 +193,8 @@ std::size_t place_labels(const Camera& camera, std::span<const LabelCandidate> c
                     break;
                 }
             }
+            if (dx == 0 && dy == 0)
+                continue;
         }
         PlacedLabel placed{*index, box.left - wrapped->metrics[0].left, box.top + ascent, box};
         if (wrapped->count > 1) {

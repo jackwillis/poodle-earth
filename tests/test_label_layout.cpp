@@ -113,7 +113,7 @@ int main() {
     CHECK(place_labels(camera, lone, measure, &calls, side_out, elsewhere) == 1);
 
     // A centred label ducks the boxes in `avoid`: up first, then down, right, left; with nowhere
-    // clear it stays put. Overlap with another label still drops it. "dot" is 7+2 wide, 8 high.
+    // clear it is dropped. Overlap with another label still drops it. "dot" is 7+2 wide, 8 high.
     const auto centred = [&](int x, int y, std::string_view text, int priority) {
         return LabelCandidate{anchor(camera, x, y), text, LabelRole::point, priority};
     };
@@ -130,8 +130,7 @@ int main() {
     CHECK(place_labels(camera, one, measure, &calls, duck, boxed) == 1);
     CHECK(duck[0].box == (LabelBox{68, 60, 77, 68})); // up and down taken, so right
     const std::array<PlacedLabel, 1> everywhere{PlacedLabel{0, 0, 0, {0, 0, 128, 128}}};
-    CHECK(place_labels(camera, one, measure, &calls, duck, everywhere) == 1);
-    CHECK(duck[0].box == (LabelBox{60, 60, 69, 68})); // nowhere clear: stays centred
+    CHECK(place_labels(camera, one, measure, &calls, duck, everywhere) == 0);
 
     // Wrapping: a name wider than max_width breaks at spaces, at most three lines; centred labels
     // centre each line, labels beside a dot align left; a long single word stays whole.
