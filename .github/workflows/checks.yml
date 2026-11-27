@@ -139,8 +139,32 @@ jobs:
           cat SHA256SUMS >> "$GITHUB_STEP_SUMMARY"
           wc -c PoodleEarth-*-hfs.iso >> "$GITHUB_STEP_SUMMARY"
           cd ../..
-          python3 tools/package_cd.py build-os9-floppy "${RUNNER_TEMP}/rebuild.iso" "$(git log -1 --format=%ct)"
+          src=$(echo build-os9-floppy/release/PoodleEarth-*-source.tar.gz)
+          python3 tools/package_cd.py --source "$src" --notes build-os9-floppy/source-notes.txt \
+            build-os9-floppy "${RUNNER_TEMP}/rebuild.iso" "$(git log -1 --format=%ct)"
           cmp build-os9-floppy/release/PoodleEarth-*-hfs.iso "${RUNNER_TEMP}/rebuild.iso"
+      - name: Extract the source archive from both disc views and compare with the standalone archive
+        run: |
+          set -e
+          iso=$(echo build-os9-floppy/release/PoodleEarth-*-hfs.iso)
+          src=$(echo build-os9-floppy/release/PoodleEarth-*-source.tar.gz)
+          want=$(sha256sum "$src" | cut -d' ' -f1)
+          # ISO 9660 view: isoinfo (a different reader from the packager's own parser)
+          iso_sha=$(isoinfo -i "$iso" -x '/SOURCE.TGZ;1' | sha256sum | cut -d' ' -f1)
+          # Macintosh HFS view: hfsutils, raw copy of the data fork from the Apple_HFS partition
+          python3 - "$iso" "${RUNNER_TEMP}/view.hfs" <<'PY'
+          import sys
+          sys.path.insert(0, "tools")
+          from package_cd import hybrid_partition
+          open(sys.argv[2], "wb").write(hybrid_partition(open(sys.argv[1], "rb").read()))
+          PY
+          hmount "${RUNNER_TEMP}/view.hfs" > /dev/null
+          hcopy -r ":Source.tar.gz" "${RUNNER_TEMP}/hfs-source.tar.gz"
+          humount
+          hfs_sha=$(sha256sum "${RUNNER_TEMP}/hfs-source.tar.gz" | cut -d' ' -f1)
+          echo "standalone $want"; echo "ISO view   $iso_sha"; echo "HFS view   $hfs_sha"
+          [ "$want" = "$iso_sha" ] && [ "$want" = "$hfs_sha" ]
+          { echo; echo "Source archive on the disc (both views) == standalone: \`$want\`"; } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
           name: os9-floppy-build-and-size-report

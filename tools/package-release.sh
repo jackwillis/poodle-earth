@@ -65,12 +65,30 @@ done
 # ...and the two halves are exactly the GPL text, each small enough for SimpleText.
 cat "$build_dir/license/License-1.txt" "$build_dir/license/License-2.txt" | cmp - LICENSE
 for part in "$build_dir"/license/License-*.txt; do [ "$(wc -c < "$part")" -lt 32768 ]; done
-cd_image="$out/$name-hfs.iso"
-python3 tools/package_cd.py "$build_dir" "$cd_image" "$epoch"
-# GNU tar and gzip timestamps are determined by the commit, not build wall time.
 # The complete tracked corresponding source, so the release does not rest on an online repository.
+# Made once, here, and used as is: the disc embeds this exact file (#231), never a second archive.
+# GNU tar and gzip timestamps are determined by the commit, not build wall time.
 source_archive="$out/$name-source.tar.gz"
 git archive --format=tar --prefix="globe-$version-$rev/" HEAD | gzip -n > "$source_archive"
+source_sha=$(sha256sum "$source_archive" | cut -d' ' -f1)
+notes="$build_dir/source-notes.txt"
+cat > "$notes" <<EOF
+Poodle Earth $version - corresponding source
+
+Source.tar.gz on this disc is the complete source of this release:
+the same file, byte for byte, as $name-source.tar.gz
+published beside the disc image.
+
+Revision: $revision
+SHA-256:  $source_sha
+
+On a Mac, open Source.tar.gz with StuffIt Expander. Elsewhere, run
+tar xzf on it (on the ISO 9660 view the file is named SOURCE.TGZ).
+README.md and docs/ in the archive explain how to build the program,
+and LICENSE and data/DATA-CREDITS.txt give the licences and data credits.
+EOF
+cd_image="$out/$name-hfs.iso"
+python3 tools/package_cd.py --source "$source_archive" --notes "$notes" "$build_dir" "$cd_image" "$epoch"
 python3 tools/release_manifest.py --output "$out/RELEASE.json" \
     --revision "$revision" --epoch "$epoch" \
     --retro68-image "${RETRO68_IMAGE:-${retro68_image:-ghcr.io/autc04/retro68}}" \
