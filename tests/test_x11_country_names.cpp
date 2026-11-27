@@ -94,6 +94,28 @@ int main(int argc, char** argv) {
     CHECK(on != off);
     toggle();
     CHECK(pixels(d, globe) == on);
+    // The City Names row is the second toggle: it changes the settled frame and restores it.
+    auto toggle_cities = [&] {
+        XEvent e{};
+        e.xbutton.type = ButtonPress;
+        e.xbutton.display = d;
+        e.xbutton.window = tools;
+        e.xbutton.button = Button1;
+        e.xbutton.x = 20;
+        e.xbutton.y = kToolbarHeight + 38;
+        XSendEvent(d, tools, False, ButtonPressMask, &e);
+        XFlush(d);
+        usleep(150000);
+    };
+    // With the country names off no country label can take a city's place, so the toggle shows.
+    toggle();
+    const auto cities_on = pixels(d, globe);
+    toggle_cities();
+    CHECK(pixels(d, globe) != cities_on);
+    toggle_cities();
+    CHECK(pixels(d, globe) == cities_on);
+    toggle();
+    CHECK(pixels(d, globe) == on);
     XEvent press{};
     press.xbutton.type = ButtonPress;
     press.xbutton.display = d;
