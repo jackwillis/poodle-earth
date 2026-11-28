@@ -2,7 +2,7 @@
 
 **An offline, software-rendered globe for PowerPC Classic Macs.** Turn the Earth, explore countries and cities, and see the world from another angle. Poodle Earth is free software; a Unix/X11 frontend can also be built from source.
 
-**[Download Poodle Earth v0.1.2](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.2)** · [Website](https://jackwillis.github.io/poodle-earth/) · [User guide](docs/user-guide.md) · [Changelog](CHANGELOG.md)
+**[Download Poodle Earth v0.1.3](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.3)** · [Website](https://jackwillis.github.io/poodle-earth/) · [User guide](docs/user-guide.md) · [Changelog](CHANGELOG.md)
 
 ![Poodle Earth on a Classic Mac desktop, showing the Map look and information sidebar](site/images/os9-hero-map.png)
 
@@ -20,17 +20,18 @@
 
 ## Download and platforms
 
-The published application is for **PowerPC Classic Mac OS**. The [v0.1.2 release](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.2) includes a StuffIt archive (`.sit`), a hybrid HFS/ISO CD image (`.iso`), matching source and checksums.
+The [v0.1.3 release](https://github.com/jackwillis/poodle-earth/releases/tag/v0.1.3) includes Classic Mac, Linux x86-64, and NetBSD 11.1 downloads, along with source archives and checksums.
 
 | Platform | Availability |
 | --- | --- |
-| **Classic Mac OS (PowerPC)** | Published binary. The exact v0.1.2 StuffIt archive and CD image were tested on a Power Mac G4 running bare Mac OS 9.2.2. |
-| **Earlier PowerPC Mac OS** | Earlier development builds were smoke-tested in emulation back to System 7.1.2; this is not blanket certification of v0.1.2 on those systems. |
-| **Linux and NetBSD (X11)** | Separate frontend available from source; no published Unix binary packages yet. |
+| **Classic Mac OS (PowerPC)** | Published binary. StuffIt archive and hybrid CD image. Tested on a Power Mac G4 running Mac OS 9. |
+| **Earlier PowerPC Mac OS** | Earlier development builds were smoke-tested in emulation back to System 7.1.2; this is not blanket certification of v0.1.3 on those systems. |
+| **Linux x86-64 (X11)** | Portable archive. Requires glibc 2.34 or newer. See the included `INSTALL.txt`. |
+| **NetBSD 11.1 (X11)** | Separate amd64 and macppc packages. Install the matching `.tgz` with `pkg_add`. |
 
 On a Classic Mac, expand the `.sit` with StuffIt Expander. Alternatively, mount the ISO as a CD in a compatible PowerPC environment. **Copy the application and accompanying files using Finder** so its resource fork and Finder information survive.
 
-The Classic application has a **24 MB preferred / 12 MB minimum** application-memory setting. It is PowerPC-only, not a 68k or native Mac OS X application. See the [user guide](docs/user-guide.md) for installation steps, controls and troubleshooting, and the [v0.1.2 release notes](docs/release-notes-0.1.2.md) for tested behavior and limitations.
+The Classic application has a **24 MB preferred / 12 MB minimum** application-memory setting. It is PowerPC-only, not a 68k or native Mac OS X application. See the [user guide](docs/user-guide.md) for installation steps, controls and troubleshooting, and the [v0.1.3 release notes](docs/release-notes-0.1.3.md) for tested behavior and limitations.
 
 ## Build from source
 
@@ -53,7 +54,7 @@ Modern-host tools prepare geographic data as compact, validated resources; the C
 
 ## Roadmap
 
-- **v0.1.3 — First Unix distribution:** work toward tested NetBSD pkgsrc and Linux x86-64 packages for the existing X11 frontend.
+- **v0.1.4 — A Testable Earth:** graphical acceptance testing for the Linux/X11 application.
 - **v0.2 — The Atlas on the Map:** clearer labels and discovery, richer information about places, and more coherent geographic navigation.
 - **Later:** richer offline geography and regional editions, resource management, and additional platforms where practical and tested.
 
