@@ -92,3 +92,13 @@ ol { padding-inline-start: 1.5rem; }
 .platform-install summary:hover { text-decoration: underline; }
 .platform-install details[open] summary { margin-bottom: .45rem; }
 .platform-install details p:last-child, .platform-install details ol:last-child { margin-bottom: .55rem; }
+
+.download-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1.5rem;
+}
+.download-grid h3 { margin: 0; }
+.download-grid ul { padding-inline-start: 1.2rem; }
+.download-grid li + li { margin-top: .4rem; }
+.download-meta { margin-top: 1.5rem; }
